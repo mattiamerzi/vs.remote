@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33103.184
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vs.Remote", "Vs.Remote\Vs.Remote.csproj", "{4A77B5ED-667F-47F9-BF04-DE98483E6ECC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VsRemote", "VsRemote\VsRemote.csproj", "{4A77B5ED-667F-47F9-BF04-DE98483E6ECC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vs.Remote.Sample", "Vs.Remote.Sample\Vs.Remote.Sample.csproj", "{44FDD39A-23C6-4007-B30F-48F59164C5A3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VsRemote.Sample", "VsRemote.Sample\VsRemote.Sample.csproj", "{44FDD39A-23C6-4007-B30F-48F59164C5A3}"
 	ProjectSection(ProjectDependencies) = postProject
 		{4A77B5ED-667F-47F9-BF04-DE98483E6ECC} = {4A77B5ED-667F-47F9-BF04-DE98483E6ECC}
 	EndProjectSection

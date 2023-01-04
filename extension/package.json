@@ -2,6 +2,7 @@
 	"name": "vsremote",
 	"displayName": "Vs.Remote - a remote dotnet/gRPC file system provider",
 	"description": "A generic Visual Studio Code remote filesystem implementation for dotnet based on protocol buffers, gRPC and asp.net",
+	"icon": "vsremote_icon.png",
 	"version": "0.0.1",
 	"private": true,
 	"license": "MIT",
