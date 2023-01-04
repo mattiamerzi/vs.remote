@@ -4,6 +4,8 @@
 Vs.Remote allows you to connect your Visual Studio Code workspace to a generic remote filesystem, where the backend is based on a custom dotnet core implementation.
 [Visit the project page](https://github.com/mattiamerzi/vs.remote) for more info on how to create a backend filesystem.
 
+**The backend package is [available on nuget.org as VsRemote](https://www.nuget.org/packages/VsRemote/), while the vscode extension must be installed manually; you can grab your .vsix extension file [HERE](https://github.com/mattiamerzi/vs.remote/releases/tag/pre-release)**
+
 ## Configure the Visual Studio Code extension
 After having installed the Vs.Remote extension, in order to configure the available connections you just have to add a "vs.remote" block inside your settings.json file with this schema:
 
