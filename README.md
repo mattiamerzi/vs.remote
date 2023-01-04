@@ -1,4 +1,8 @@
+![GitHub](https://img.shields.io/github/license/mattiamerzi/vs.remote)
 ![AppVeyor](https://img.shields.io/appveyor/build/mattiamerzi/vs-remote)
+![GitHub issues](https://img.shields.io/github/issues/mattiamerzi/vs.remote)
+![Code Climate maintainability](https://img.shields.io/codeclimate/maintainability/mattiamerzi/vs.remote)
+![Nuget](https://img.shields.io/nuget/v/VsRemote)
 
 # Vs.Remote
 ## A Visual Studio Code remote filesystem implementation with dotnet core backend, based on protocol buffers, gRPC and asp.net
