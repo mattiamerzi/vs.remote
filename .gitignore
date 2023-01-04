@@ -8,3 +8,5 @@
 /backend/Vs.Remote/obj
 /backend/Vs.Remote.Sample/bin/Debug/net6.0
 /backend/Vs.Remote.Sample/obj
+/backend/VsRemote/obj
+/backend/VsRemote.Sample/obj
