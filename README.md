@@ -90,7 +90,7 @@ Vs.Remote supports both key-based and username/password authentication, but ther
 
 Vs.Remote session handling is token based: the authentication method must return a session token that is verified before any filesystem action.
 
-In order to create an authentication backend, you should extend the `VsRemoteBaseAuthenticator` abstract class and override either `Authenticate(string auth_key)` or `Authenticate(string username, string password)`; these methods return a VsRemoteAuthenticateResult object that can be instantiated using static constructors present on the class itself, that are:
+In order to create an authentication backend, you should extend the `VsRemoteBaseAuthenticator` abstract class and override either `Authenticate(string auth_key)` or `Authenticate(string username, string password)`; these methods return a `VsRemoteAuthenticateResult` object that can be instantiated using static constructors present on the class itself, that are:
 
     VsRemoteAuthenticateResult.Authenticated(session_token)
     VsRemoteAuthenticateResult.InvalidAuthKey
@@ -99,11 +99,11 @@ In order to create an authentication backend, you should extend the `VsRemoteBas
 
 Then you have to implement the `ValidateToken(string auth_token)` method that returns an `enum VsRemoteAuthenticationStatus`
 
- - valid token => return AUTHENTICATED
- - invalid token (for whatever reason) => return EXPIRED
- - authentication backend unavailable or faulty => return AUTHENTICATION_ERROR
+ - valid token => return `AUTHENTICATED`
+ - invalid token (for whatever reason) => return `EXPIRED`
+ - authentication backend unavailable or faulty => return `AUTHENTICATION_ERROR`
 
-**Other enum values should not be used as return values for ValidateToken.**
+**Other enum values should not be used as return values for `ValidateToken`.**
 
 Whenever a token expires (i.e., you return `EXPIRED` from `ValidateToken`) the vscode extension automatically calls the Login method again in order to obtain a new token without any kind of user feedback inside the editor.
 
@@ -111,9 +111,9 @@ The Sample project contains an example of a token-based authentication backend w
 
 Now, if you need to differentiate the filesystem permissions based on the session, you have to dig a bit more. The entry point for implementing this feature is the `IVsRemoteFileSystemProvider` interface.
 
-As previously stated, the FromPath method takes the auth_token as second parameter; in the provided implementations, this parameter is ignored.
+As previously stated, the `FromPath` method takes the `auth_token` as second parameter; in the provided implementations, this parameter is ignored.
 
-If, for example, you want to provide a read-only and a read-write version of the very same filesystem, based on the requesting user, you might check the auth_token, verify if that token is owned by a user that has read-only or read-write permissions, and return the filesystem object accordingly.
+If, for example, you want to provide a read-only and a read-write version of the very same filesystem, based on the requesting user, you might check the `auth_token`, verify if that token is owned by a user that has read-only or read-write permissions, and return the filesystem object accordingly.
 
 
 
@@ -157,7 +157,7 @@ The `EnableReflectionService` just enables the gRPC reflection service for debug
 
 ## Configure the Visual Studio Code extension
 
-After having installed the vscode Vs.Remote extension, in order to configure the available connections you just have to add a "vs.remote" json block inside your settings.json file following this sample schema:
+After having installed the vscode Vs.Remote extension, in order to configure the available connections you just have to add a "vs.remote" json block inside your `settings.json` file following this sample schema:
 
     "vs.remote": {
       "remotes": {
@@ -186,7 +186,7 @@ Here test_conn_1 is configured as anonymous / unauthenticated, test_conn_2 uses 
 
 If you want to enforce a file size limit on the filesystem, you shouldn't do it inside your filesystem implementation, instead, you should better work on the system configuration following these steps:
 
- - Add the GrpcServiceOptions flags:
+ - Add the `GrpcServiceOptions` flags:
 
         builder.Services.AddVsRemote(fsProvider, options =>
         {
@@ -209,9 +209,9 @@ And that's it.
 
 The sample project contains various elements that will surely help you implementing your own filesystem extension; there you'll find two filesystem implementation stubs:
 
- - InMemoryIndexedDictionaryFilesystem is a very basic, key-based, in-memory filesystem, backed by a ConcurrentDictionary
- - LocalFolderFilesystem is a path-based filesystem mapper for a local directory
+ - `InMemoryIndexedDictionaryFilesystem` is a very basic, key-based, in-memory filesystem, backed by a `ConcurrentDictionary`
+ - `LocalFolderFilesystem` is a path-based filesystem mapper for a local directory
 
-along with SampleAuthKeyAuthentication: a simple authentication mechanism that implements auth_key authentication and expiring tokens.
+along with `SampleAuthKeyAuthentication`: a simple authentication mechanism that implements auth_key authentication and expiring tokens.
 
-A sample usage of these classes can be found inside the Program.cs source file.
+A sample usage of these classes can be found inside the `Program.cs` source file.
