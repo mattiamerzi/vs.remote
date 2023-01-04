@@ -1,0 +1,59 @@
+{
+	"name": "vsremote",
+	"displayName": "Vs.Remote - a remote dotnet/gRPC file system provider",
+	"description": "A generic Visual Studio Code remote filesystem implementation for dotnet based on protocol buffers, gRPC and asp.net",
+	"version": "0.0.1",
+	"private": true,
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/mattiamerzi/vs.remote"
+	},
+	"engines": {
+		"vscode": "^1.32.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [
+		"onFileSystem:vsrem",
+		"onCommand:vsrem.addVsRemoteFolder"
+	],
+	"main": "./out/src/extension",
+	"contributes": {
+		"commands": [
+			{
+				"command": "vsrem.addVsRemoteFolder",
+				"title": "Add Vs.Remote folder to Workspace",
+				"category": "Vs.Remote"
+			}
+		],
+		"menus": {
+			"commandPalette": [
+				{
+					"command": "vsrem.addVsRemoteFolder"
+				}
+			]
+		}
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"lint": "eslint \"src/**/*.ts\"",
+		"watch": "tsc -watch -p ./",
+		"grpc": "node ./node_modules/@grpc/proto-loader/build/bin/proto-loader-gen-types.js --grpcLib=@grpc/grpc-js --longs Number -O src// ../backend/Vs.Remote/Vs.Remote/Protos/fs.proto --defaults"
+	},
+	"devDependencies": {
+		"@types/node": "^16.11.7",
+		"@types/vscode": "^1.32.0",
+		"@typescript-eslint/eslint-plugin": "^5.42.0",
+		"@typescript-eslint/parser": "^5.42.0",
+		"eslint": "^8.26.0",
+		"typescript": "^4.8.4"
+	},
+	"dependencies": {
+		"@grpc/grpc-js": "^1.7.3",
+		"@grpc/proto-loader": "^0.7.3",
+		"axios": "^1.1.0"
+	}
+}

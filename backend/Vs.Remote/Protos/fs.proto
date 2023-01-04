@@ -1,0 +1,164 @@
+syntax = "proto3";
+
+option csharp_namespace = "Vs.Remote";
+
+package vsremote;
+
+service VsRemote {
+  rpc Login (LoginRequest) returns (LoginResponse);
+  rpc Stat (StatRequest) returns (StatResponse);
+  rpc ListDirectory (ListDirectoryRequest) returns (ListDirectoryResponse);
+  rpc CreateDirectory (CreateDirectoryRequest) returns (CreateDirectoryResponse);
+  rpc RemoveDirectory (RemoveDirectoryRequest) returns (RemoveDirectoryResponse);
+  rpc DeleteFile (DeleteFileRequest) returns (DeleteFileResponse);
+  rpc RenameFile (RenameFileRequest) returns (RenameFileResponse);
+  rpc ReadFile (ReadFileRequest) returns (ReadFileResponse);
+  rpc WriteFile (WriteFileRequest) returns (WriteFileResponse);
+}
+
+enum FileType {
+    UNKNOWN = 0;
+    FILE = 1;
+    DIRECTORY = 2;
+    SYMBOLIC_LINK = 64;
+}
+
+enum AuthResult {
+	AUTHENTICATED = 0;
+    INVALID_AUTH_KEY = 1;
+    INVALID_USERNAME_OR_PASSWORD = 2;
+    AUTHENTICATION_ERROR = 3;
+    EXPIRED = 4;
+}
+
+
+message VsFsEntry {
+    string name = 1;
+    FileType file_type = 2;
+    int64 mtime = 3;
+    int64 ctime = 4;
+    int64 size = 5;
+}
+
+
+
+// LOGIN
+
+message LoginRequest {
+    string auth_key = 1;
+    string username = 2;
+    string password = 3;
+}
+
+message LoginResponse {
+    AuthResult auth_result = 1;
+    string auth_token = 2;
+    string failure_message = 3;
+}
+
+
+
+// STAT
+
+message StatRequest {
+    string auth_token = 1;
+    string path = 2;
+}
+
+message StatResponse {
+    VsFsEntry file_info = 1;
+}
+
+
+
+// LIST DIRECTORY
+
+message ListDirectoryRequest {
+    string auth_token = 1;
+    string path = 2;
+}
+
+message ListDirectoryResponse {
+    repeated VsFsEntry entries = 1;
+}
+
+
+
+// Create Directory
+
+message CreateDirectoryRequest {
+    string auth_token = 1;
+    string path = 2;
+}
+
+message CreateDirectoryResponse {
+}
+
+
+
+// Remove Directory
+
+message RemoveDirectoryRequest {
+    string auth_token = 1;
+    string path = 2;
+    bool recursive = 3;
+}
+
+message RemoveDirectoryResponse {
+}
+
+
+
+// Delete File
+
+message DeleteFileRequest {
+    string auth_token = 1;
+    string path = 2;
+}
+
+message DeleteFileResponse {
+}
+
+
+
+// Rename File
+
+message RenameFileRequest {
+    string auth_token = 1;
+    string from_path = 2;
+    string to_path = 3;
+    bool overwrite = 4;
+}
+
+message RenameFileResponse {
+}
+
+
+
+// Read File
+
+message ReadFileRequest {
+    string auth_token = 1;
+    string path = 2;
+}
+
+message ReadFileResponse {
+    int64 length = 1;
+    bytes content = 2;
+}
+
+
+
+// Write File
+
+message WriteFileRequest {
+    string auth_token = 1;
+    string path = 2;
+    bool create = 3;
+    bool overwrite = 4;
+    bytes content = 10;
+}
+
+message WriteFileResponse {
+    int64 bytes_written = 1;
+}
