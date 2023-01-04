@@ -1,3 +1,5 @@
+![AppVeyor](https://img.shields.io/appveyor/build/mattiamerzi/vs-remote)
+
 # Vs.Remote
 ## A Visual Studio Code remote filesystem implementation with dotnet core backend, based on protocol buffers, gRPC and asp.net
 
