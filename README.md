@@ -15,6 +15,131 @@ You can store your files wherever you need them to be: on a database, in memory,
 
 
 
+## Quick Start
+This example has been created using Visual Studio 2022 Community and Visual Studio Code 1.74.2 (*user setup*); your mileage may vary.
+
+Create an empty .net 6+ **ASP.NET Core Web API** project named **TestVsRemote**
+
+<img src="https://i.ibb.co/VptBmTN/new-vs-project.png" alt="new-vs-project" border="0">
+
+Uncheck all the various checkboxes and set authentication type to "None", this should provide you with the simplest project possible.
+
+<img src="https://i.ibb.co/rv4d275/vs-project-config.png" alt="vs-project-config" border="0">
+
+Add the "VsRemote" nuget package to the project; in the nuget search options you should check the "Include prerelease" checkbox.
+
+<img src="https://i.ibb.co/D8x1wCB/add-nuget-pkg.png" alt="add-nuget-pkg" border="0">
+
+Import the sample in-memory filesystem into your project from this URL:
+
+[InMemoryIndexedDictionaryFilesystem.cs](https://raw.githubusercontent.com/mattiamerzi/vs.remote/main/backend/VsRemote.Sample/InMemoryIndexedDictionaryFilesystem.cs)
+
+and place it into the root folder of your project.
+
+Open Program.cs, remove all the code that's been generated inside and copy paste this code:
+
+    using VsRemote.Interfaces;
+    using VsRemote.Providers;
+    using VsRemote.Sample;
+    using VsRemote.Startup;
+    
+    var builder = WebApplication.CreateBuilder(args);
+    IVsRemoteFileSystemProvider fsProvider =
+        new RootFsProvider(
+            new InMemoryIndexedDictionaryFilesystem());
+    builder.Services.AddVsRemote(fsProvider);
+    var app = builder.Build();
+    app.MapVsRemote();
+    app.Run();
+
+Open appsettings.json and update the content with this:
+
+    {
+      "Logging": {
+        "LogLevel": {
+          "Default": "Debug",
+          "Microsoft.AspNetCore": "Warning"
+        },
+        "Console": {
+          "FormatterName": "Simple",
+          "FormatterOptions": {
+            "SingleLine":  true
+          },
+          "LogLevel": {
+            "Default": "Debug",
+            "Microsoft": "Warning",
+            "Grpc": "Warning"
+          }
+        }
+      },
+      "AllowedHosts": "*",
+      "Kestrel": {
+        "EndpointDefaults": {
+          "Protocols": "Http2"
+        }
+      }
+    }
+
+this basically enables Http2 on Kestrel and sets the interesting logs log level to "Debug".
+
+Open Properties/launchSettings.json and update the content with this:
+
+    {
+      "profiles": {
+        "TestVsRemote": {
+          "commandName": "Project",
+          "dotnetRunMessages": true,
+          "launchBrowser": false,
+          "applicationUrl": "http://localhost:5090",
+          "environmentVariables": {
+            "ASPNETCORE_ENVIRONMENT": "Development"
+          }
+        }
+      }
+    }
+
+Grab the Visual Studio Code extension file from here:
+[vsremote-0.0.1.vsix](https://github.com/mattiamerzi/vs.remote/releases/download/pre-release/vsremote-0.0.1.vsix)
+
+Open Visual Studio code, go to the Extensions tab and manually install the extension:
+
+<img src="https://i.ibb.co/TTKTBH9/vscode-install-vsix.png" alt="vscode-install-vsix" border="0">
+
+Go to File => Preferences => Settings and open the json settings file clicking the "Open Settings (JSON)" icon on the top right corner:
+
+<img src="https://i.ibb.co/PY2X6qz/open-settings-json.png" alt="open-settings-json" border="0">
+
+Append this json block to the end of the file:
+
+    "vs.remote": {
+        "remotes": {
+            "test2fs": {
+                "host": "localhost",
+                "port": 5090
+            }
+        }
+    }
+
+<img src="https://i.ibb.co/r7JGrkx/edit-settings-json-file.png" alt="edit-settings-json-file" border="0">
+
+Save and close.
+Now, **assuming the backend project is still running**, open the commands dialog ( SHIFT + CTRL + P ) and search for Vs.Remote: Add Vs.Remote folder to Workspace
+
+<img src="https://i.ibb.co/xYZ2cnm/vsremote-command.png" alt="vsremote-command" border="0">
+
+launch that command, choose the only option that will appear in the next dialog
+
+<img src="https://i.ibb.co/r09PnGS/test2fs-command.png" alt="test2fs-command" border="0">
+
+now, in your vscode workspace there should be a new folder containing a single sample.txt file
+
+<img src="https://i.ibb.co/BzG2xKX/vsremote-folder.png" alt="vsremote-folder" border="0">
+
+That's it! Visual Studio Code is connected to your sample backend project, and the files you will create or store will reside into the sample in-memory filesystem you have just created.
+In the next sections you'll find more details on how to create a filesystem and adapt the backend to your needs. If you find any trouble working with Vs.Remote, feel free to open an issue on github.
+
+
+
 ## Create your own filesystem
 
 Depending on how your backend works, you can choose to implement your filesystem as path-based or index-based.
