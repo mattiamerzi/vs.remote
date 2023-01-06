@@ -5,7 +5,7 @@
 ![Nuget](https://img.shields.io/nuget/v/VsRemote)
 
 # Vs.Remote
-## A Visual Studio Code remote filesystem implementation with dotnet core backend, based on protocol buffers, gRPC and asp.net
+## A Visual Studio Code remote filesystem implementation with dotnet core backend, based on protocol buffers, gRPC and ASP.NET Core.
 
 Vs.Remote allows you to connect your Visual Studio Code workspace to a generic remote filesystem, where the backend is based on a custom dotnet core implementation.
 
