@@ -136,6 +136,8 @@ now, in your vscode workspace there should be a new folder containing a single s
 <img src="https://i.ibb.co/BzG2xKX/vsremote-folder.png" alt="vsremote-folder" border="0">
 
 That's it! Visual Studio Code is connected to your sample backend project, and the files you will create or store will reside into the sample in-memory filesystem you have just created.
+The sample project included in the backend solution contains some other interesting stuff, like a local filesystem mapper and a simple authentication backend (more details about this in the next sections).
+
 In the next sections you'll find more details on how to create a filesystem and adapt the backend to your needs. If you find any trouble working with Vs.Remote, feel free to open an issue on github.
 
 
