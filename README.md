@@ -11,7 +11,7 @@ Vs.Remote allows you to connect your Visual Studio Code workspace to a generic r
 
 You can store your files wherever you need them to be: on a database, in memory, on a real filesystem ...
 
-**The backend package is [available on nuget.org as VsRemote](https://www.nuget.org/packages/VsRemote/), while the vscode extension must be installed manually; you can grab your .vsix extension file [HERE](https://github.com/mattiamerzi/vs.remote/releases/tag/pre-release)**
+**The backend package is [available on nuget.org as VsRemote](https://www.nuget.org/packages/VsRemote/), and the vscode extension is [available on the Visual Studio Code Marketplace](https://marketplace.visualstudio.com/items?itemName=MattiaMerzi.vsremote); alternatively, the extension might be installed manually; you can grab your .vsix extension file [HERE](https://github.com/mattiamerzi/vs.remote/releases/tag/pre-release)**
 
 
 
