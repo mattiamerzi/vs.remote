@@ -98,14 +98,14 @@ Open Properties/launchSettings.json and update the content with this:
       }
     }
 
-Grab the Visual Studio Code extension file from here:
+The vscode extension is [available on the Visual Studio Code Marketplace](https://marketplace.visualstudio.com/items?itemName=MattiaMerzi.vsremote); alternatively, grab the Visual Studio Code extension file from here:
 [vsremote-0.0.1.vsix](https://github.com/mattiamerzi/vs.remote/releases/download/pre-release/vsremote-0.0.1.vsix)
 
-Open Visual Studio code, go to the Extensions tab and manually install the extension:
+Then open Visual Studio code, go to the Extensions tab and manually install the extension:
 
 <img src="https://i.ibb.co/TTKTBH9/vscode-install-vsix.png" alt="vscode-install-vsix" border="0">
 
-Go to File => Preferences => Settings and open the json settings file clicking the "Open Settings (JSON)" icon on the top right corner:
+After having installed the Visual Studio Code extension, go to File => Preferences => Settings and open the json settings file clicking the "Open Settings (JSON)" icon on the top right corner:
 
 <img src="https://i.ibb.co/PY2X6qz/open-settings-json.png" alt="open-settings-json" border="0">
 
