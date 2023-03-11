@@ -1,4 +1,4 @@
-// Original file: ../srv/Vs.Remote/Vs.Remote.gRPC/Protos/fs.proto
+// Original file: ../backend/VsRemote/Protos/fs.proto
 
 import type { VsFsEntry as _vsremote_VsFsEntry, VsFsEntry__Output as _vsremote_VsFsEntry__Output } from '../vsremote/VsFsEntry';
 

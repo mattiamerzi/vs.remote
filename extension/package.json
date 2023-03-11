@@ -27,13 +27,18 @@
 				"command": "vsrem.addVsRemoteFolder",
 				"title": "Add Vs.Remote folder to Workspace",
 				"category": "Vs.Remote"
+			},
+			{
+				"command": "vsrem.showVsRemoteCommands",
+				"title": "Execute remote command",
+				"category": "Vs.Remote",
+				"enablement": "vsrem.hasVsRemoteCommands"
 			}
 		],
 		"menus": {
 			"commandPalette": [
-				{
-					"command": "vsrem.addVsRemoteFolder"
-				}
+				{ "command": "vsrem.addVsRemoteFolder" },
+				{ "command": "vsrem.showVsRemoteCommands" }
 			]
 		}
 	},
@@ -42,7 +47,7 @@
 		"compile": "tsc -p ./",
 		"lint": "eslint \"src/**/*.ts\"",
 		"watch": "tsc -watch -p ./",
-		"grpc": "node ./node_modules/@grpc/proto-loader/build/bin/proto-loader-gen-types.js --grpcLib=@grpc/grpc-js --longs Number -O src// ../backend/Vs.Remote/Vs.Remote/Protos/fs.proto --defaults"
+		"grpc": "node ./node_modules/@grpc/proto-loader/build/bin/proto-loader-gen-types.js --grpcLib=@grpc/grpc-js --longs Number -O src// ../backend/VsRemote/Protos/fs.proto --defaults"
 	},
 	"devDependencies": {
 		"@types/node": "^16.11.7",

@@ -7,10 +7,10 @@ import { VsRemoteSettings } from './settings';
 export async function activate(context: vscode.ExtensionContext) {
 	console.log('Vs.Remote says "Hello, World!"');
 
-	const vsRemote = new VsRemoteFs();
-	context.subscriptions.push(vscode.workspace.registerFileSystemProvider('vsrem', vsRemote, { isCaseSensitive: true }));
-
 	if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
+		const vsRemote = new VsRemoteFs();
+		context.subscriptions.push(vscode.workspace.registerFileSystemProvider('vsrem', vsRemote, { isCaseSensitive: true }));
+
 		const unconnectedFolders: vscode.WorkspaceFolder[] = vscode.workspace.workspaceFolders.filter(folder => !vsRemote.alreadyConnected(folder.uri));
 		for (const folder of unconnectedFolders) {
 			try {
@@ -22,6 +22,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					if (await settings.checkAuth(remote)) {
 						vsRemote.connect(remote);
 						vsRemote.login(remote);
+						vscode.commands.executeCommand('setContext', 'vsrem.hasVsRemoteCommands', true);
 					}
 				}
 			} catch { }
@@ -41,6 +42,10 @@ export async function activate(context: vscode.ExtensionContext) {
 		if (chrem) {
 			vscode.workspace.updateWorkspaceFolders(0, 0, { uri: vscode.Uri.parse(`vsrem://${chrem?.name}/`), name: `${chrem?.name} ( vsrem://${chrem.host}:${chrem.port} )` });
 		}
+	}));
+
+	context.subscriptions.push(vscode.commands.registerCommand('vsrem.showVsRemoteCommands', async() => {
+		console.log('vsrem.showVsRemoteCommands OK!');
 	}));
 }
 

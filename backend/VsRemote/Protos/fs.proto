@@ -14,6 +14,8 @@ service VsRemote {
   rpc RenameFile (RenameFileRequest) returns (RenameFileResponse);
   rpc ReadFile (ReadFileRequest) returns (ReadFileResponse);
   rpc WriteFile (WriteFileRequest) returns (WriteFileResponse);
+  rpc ListCommands (ListCommandsRequest) returns (ListCommandsResponse);
+  rpc ExecuteCommand (ExecuteCommandRequest) returns (ExecuteCommandResponse);
 }
 
 enum FileType {
@@ -42,7 +44,50 @@ message VsFsEntry {
 
 
 
-// LOGIN
+// List Commands
+
+message ListCommandsRequest {
+    string auth_token = 1;
+}
+
+message ListCommandsResponse {
+    bool has_commands = 1;
+    repeated Command commands = 10;
+}
+
+message Command {
+    string name = 1;
+    string description = 2;
+    repeated CommandParameter params = 10;
+}
+
+message CommandParameter {
+    string name = 1;
+    string description = 2;
+}
+
+
+
+// Execute Command
+
+message ExecuteCommandRequest {
+    string auth_token = 1;
+    string command = 2;
+    repeated ExecutionCommandParameter params = 10;
+}
+
+message ExecuteCommandResponse {
+    bool status = 1;
+    string message = 2;
+}
+
+message ExecutionCommandParameter {
+    string name = 1;
+    string value = 2;
+}
+
+
+// Login
 
 message LoginRequest {
     string auth_key = 1;
@@ -58,7 +103,7 @@ message LoginResponse {
 
 
 
-// STAT
+// Stat
 
 message StatRequest {
     string auth_token = 1;
@@ -71,7 +116,7 @@ message StatResponse {
 
 
 
-// LIST DIRECTORY
+// List Directory
 
 message ListDirectoryRequest {
     string auth_token = 1;

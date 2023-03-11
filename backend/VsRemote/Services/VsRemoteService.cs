@@ -8,14 +8,78 @@ using VsRemote.Utils;
 
 namespace VsRemote.Services;
 
-public class VsRemoteService : VsRemote.VsRemoteBase
+internal sealed class VsRemoteService : VsRemote.VsRemoteBase
 {
     private readonly ILogger<VsRemoteService> logger;
     private readonly IVsRemoteFileSystemProvider remoteFsProvider;
     private readonly IVsRemoteAuthenticator remoteAuthenticator;
+    private readonly IVsRemoteCommands remoteCommands;
 
-    public VsRemoteService(ILogger<VsRemoteService> logger, IVsRemoteFileSystemProvider remoteFsProvider, IVsRemoteAuthenticator remoteAuthenticator)
-        => (this.logger, this.remoteFsProvider, this.remoteAuthenticator) = (logger, remoteFsProvider, remoteAuthenticator);
+    public VsRemoteService(ILogger<VsRemoteService> logger, IVsRemoteFileSystemProvider remoteFsProvider, IVsRemoteAuthenticator remoteAuthenticator, IVsRemoteCommands remoteCommands)
+        => (this.logger, this.remoteFsProvider, this.remoteAuthenticator, this.remoteCommands) = (logger, remoteFsProvider, remoteAuthenticator, remoteCommands);
+
+    public override async Task<ListCommandsResponse> ListCommands(ListCommandsRequest request, ServerCallContext context)
+    {
+        logger.LogTrace("ListCommands()");
+        await ValidateToken(request.AuthToken);
+        try
+        {
+            var response = new ListCommandsResponse();
+            var commands = remoteCommands.GetCommands();
+            if (commands.Any())
+            {
+                response.HasCommands = true;
+                response.Commands.AddRange(
+                    remoteCommands.GetCommands().Select(c => {
+                        var cmd = new Command()
+                        {
+                            Name = c.Name,
+                            Description = c.Description
+                        };
+                        cmd.Params.Add(c.Parameters.Select(p => new CommandParameter()
+                        {
+                            Name = p.Name,
+                            Description = p.Description
+                        }));
+                        return cmd;
+                    })
+                );
+            }
+            else
+            {
+                response.HasCommands = false;
+            }
+            logger.LogDebug("ListCommands() OK");
+            return response;
+        }
+        catch(Exception ex)
+        {
+            logger.LogError("ListCommands() ERR: {err}", ex.Message);
+            throw VsException.RpcFrom(ex);
+        }
+    }
+
+    public override async Task<ExecuteCommandResponse> ExecuteCommand(ExecuteCommandRequest request, ServerCallContext context)
+    {
+        logger.LogTrace("ExecuteCommand({cmd})", request.Command);
+        await ValidateToken(request.AuthToken);
+        try
+        {
+            var command = remoteCommands.GetCommands().First(c => c.Name == request.Command);
+            var result = await command.Action(request.AuthToken, request.Params.ToDictionary(p => p.Name, p => p.Value));
+            logger.LogDebug("ExecuteCommand({cmd}) OK", request.Command);
+            return new ExecuteCommandResponse()
+            {
+                Status = result.Success,
+                Message = result.Message
+            };
+        }
+        catch(Exception ex)
+        {
+            logger.LogError("ExecuteCommand({cmd}) ERR: {err}", request.Command, ex.Message);
+            throw VsException.RpcFrom(ex);
+        }
+    }
 
     public override async Task<LoginResponse> Login(LoginRequest request, ServerCallContext context)
     {

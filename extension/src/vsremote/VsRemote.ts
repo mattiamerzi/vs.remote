@@ -1,4 +1,4 @@
-// Original file: ../srv/Vs.Remote/Vs.Remote.gRPC/Protos/fs.proto
+// Original file: ../backend/VsRemote/Protos/fs.proto
 
 import type * as grpc from '@grpc/grpc-js'
 import type { MethodDefinition } from '@grpc/proto-loader'
@@ -6,6 +6,10 @@ import type { CreateDirectoryRequest as _vsremote_CreateDirectoryRequest, Create
 import type { CreateDirectoryResponse as _vsremote_CreateDirectoryResponse, CreateDirectoryResponse__Output as _vsremote_CreateDirectoryResponse__Output } from '../vsremote/CreateDirectoryResponse';
 import type { DeleteFileRequest as _vsremote_DeleteFileRequest, DeleteFileRequest__Output as _vsremote_DeleteFileRequest__Output } from '../vsremote/DeleteFileRequest';
 import type { DeleteFileResponse as _vsremote_DeleteFileResponse, DeleteFileResponse__Output as _vsremote_DeleteFileResponse__Output } from '../vsremote/DeleteFileResponse';
+import type { ExecuteCommandRequest as _vsremote_ExecuteCommandRequest, ExecuteCommandRequest__Output as _vsremote_ExecuteCommandRequest__Output } from '../vsremote/ExecuteCommandRequest';
+import type { ExecuteCommandResponse as _vsremote_ExecuteCommandResponse, ExecuteCommandResponse__Output as _vsremote_ExecuteCommandResponse__Output } from '../vsremote/ExecuteCommandResponse';
+import type { ListCommandsRequest as _vsremote_ListCommandsRequest, ListCommandsRequest__Output as _vsremote_ListCommandsRequest__Output } from '../vsremote/ListCommandsRequest';
+import type { ListCommandsResponse as _vsremote_ListCommandsResponse, ListCommandsResponse__Output as _vsremote_ListCommandsResponse__Output } from '../vsremote/ListCommandsResponse';
 import type { ListDirectoryRequest as _vsremote_ListDirectoryRequest, ListDirectoryRequest__Output as _vsremote_ListDirectoryRequest__Output } from '../vsremote/ListDirectoryRequest';
 import type { ListDirectoryResponse as _vsremote_ListDirectoryResponse, ListDirectoryResponse__Output as _vsremote_ListDirectoryResponse__Output } from '../vsremote/ListDirectoryResponse';
 import type { LoginRequest as _vsremote_LoginRequest, LoginRequest__Output as _vsremote_LoginRequest__Output } from '../vsremote/LoginRequest';
@@ -39,6 +43,24 @@ export interface VsRemoteClient extends grpc.Client {
   deleteFile(argument: _vsremote_DeleteFileRequest, metadata: grpc.Metadata, callback: grpc.requestCallback<_vsremote_DeleteFileResponse__Output>): grpc.ClientUnaryCall;
   deleteFile(argument: _vsremote_DeleteFileRequest, options: grpc.CallOptions, callback: grpc.requestCallback<_vsremote_DeleteFileResponse__Output>): grpc.ClientUnaryCall;
   deleteFile(argument: _vsremote_DeleteFileRequest, callback: grpc.requestCallback<_vsremote_DeleteFileResponse__Output>): grpc.ClientUnaryCall;
+  
+  ExecuteCommand(argument: _vsremote_ExecuteCommandRequest, metadata: grpc.Metadata, options: grpc.CallOptions, callback: grpc.requestCallback<_vsremote_ExecuteCommandResponse__Output>): grpc.ClientUnaryCall;
+  ExecuteCommand(argument: _vsremote_ExecuteCommandRequest, metadata: grpc.Metadata, callback: grpc.requestCallback<_vsremote_ExecuteCommandResponse__Output>): grpc.ClientUnaryCall;
+  ExecuteCommand(argument: _vsremote_ExecuteCommandRequest, options: grpc.CallOptions, callback: grpc.requestCallback<_vsremote_ExecuteCommandResponse__Output>): grpc.ClientUnaryCall;
+  ExecuteCommand(argument: _vsremote_ExecuteCommandRequest, callback: grpc.requestCallback<_vsremote_ExecuteCommandResponse__Output>): grpc.ClientUnaryCall;
+  executeCommand(argument: _vsremote_ExecuteCommandRequest, metadata: grpc.Metadata, options: grpc.CallOptions, callback: grpc.requestCallback<_vsremote_ExecuteCommandResponse__Output>): grpc.ClientUnaryCall;
+  executeCommand(argument: _vsremote_ExecuteCommandRequest, metadata: grpc.Metadata, callback: grpc.requestCallback<_vsremote_ExecuteCommandResponse__Output>): grpc.ClientUnaryCall;
+  executeCommand(argument: _vsremote_ExecuteCommandRequest, options: grpc.CallOptions, callback: grpc.requestCallback<_vsremote_ExecuteCommandResponse__Output>): grpc.ClientUnaryCall;
+  executeCommand(argument: _vsremote_ExecuteCommandRequest, callback: grpc.requestCallback<_vsremote_ExecuteCommandResponse__Output>): grpc.ClientUnaryCall;
+  
+  ListCommands(argument: _vsremote_ListCommandsRequest, metadata: grpc.Metadata, options: grpc.CallOptions, callback: grpc.requestCallback<_vsremote_ListCommandsResponse__Output>): grpc.ClientUnaryCall;
+  ListCommands(argument: _vsremote_ListCommandsRequest, metadata: grpc.Metadata, callback: grpc.requestCallback<_vsremote_ListCommandsResponse__Output>): grpc.ClientUnaryCall;
+  ListCommands(argument: _vsremote_ListCommandsRequest, options: grpc.CallOptions, callback: grpc.requestCallback<_vsremote_ListCommandsResponse__Output>): grpc.ClientUnaryCall;
+  ListCommands(argument: _vsremote_ListCommandsRequest, callback: grpc.requestCallback<_vsremote_ListCommandsResponse__Output>): grpc.ClientUnaryCall;
+  listCommands(argument: _vsremote_ListCommandsRequest, metadata: grpc.Metadata, options: grpc.CallOptions, callback: grpc.requestCallback<_vsremote_ListCommandsResponse__Output>): grpc.ClientUnaryCall;
+  listCommands(argument: _vsremote_ListCommandsRequest, metadata: grpc.Metadata, callback: grpc.requestCallback<_vsremote_ListCommandsResponse__Output>): grpc.ClientUnaryCall;
+  listCommands(argument: _vsremote_ListCommandsRequest, options: grpc.CallOptions, callback: grpc.requestCallback<_vsremote_ListCommandsResponse__Output>): grpc.ClientUnaryCall;
+  listCommands(argument: _vsremote_ListCommandsRequest, callback: grpc.requestCallback<_vsremote_ListCommandsResponse__Output>): grpc.ClientUnaryCall;
   
   ListDirectory(argument: _vsremote_ListDirectoryRequest, metadata: grpc.Metadata, options: grpc.CallOptions, callback: grpc.requestCallback<_vsremote_ListDirectoryResponse__Output>): grpc.ClientUnaryCall;
   ListDirectory(argument: _vsremote_ListDirectoryRequest, metadata: grpc.Metadata, callback: grpc.requestCallback<_vsremote_ListDirectoryResponse__Output>): grpc.ClientUnaryCall;
@@ -110,6 +132,10 @@ export interface VsRemoteHandlers extends grpc.UntypedServiceImplementation {
   
   DeleteFile: grpc.handleUnaryCall<_vsremote_DeleteFileRequest__Output, _vsremote_DeleteFileResponse>;
   
+  ExecuteCommand: grpc.handleUnaryCall<_vsremote_ExecuteCommandRequest__Output, _vsremote_ExecuteCommandResponse>;
+  
+  ListCommands: grpc.handleUnaryCall<_vsremote_ListCommandsRequest__Output, _vsremote_ListCommandsResponse>;
+  
   ListDirectory: grpc.handleUnaryCall<_vsremote_ListDirectoryRequest__Output, _vsremote_ListDirectoryResponse>;
   
   Login: grpc.handleUnaryCall<_vsremote_LoginRequest__Output, _vsremote_LoginResponse>;
@@ -129,6 +155,8 @@ export interface VsRemoteHandlers extends grpc.UntypedServiceImplementation {
 export interface VsRemoteDefinition extends grpc.ServiceDefinition {
   CreateDirectory: MethodDefinition<_vsremote_CreateDirectoryRequest, _vsremote_CreateDirectoryResponse, _vsremote_CreateDirectoryRequest__Output, _vsremote_CreateDirectoryResponse__Output>
   DeleteFile: MethodDefinition<_vsremote_DeleteFileRequest, _vsremote_DeleteFileResponse, _vsremote_DeleteFileRequest__Output, _vsremote_DeleteFileResponse__Output>
+  ExecuteCommand: MethodDefinition<_vsremote_ExecuteCommandRequest, _vsremote_ExecuteCommandResponse, _vsremote_ExecuteCommandRequest__Output, _vsremote_ExecuteCommandResponse__Output>
+  ListCommands: MethodDefinition<_vsremote_ListCommandsRequest, _vsremote_ListCommandsResponse, _vsremote_ListCommandsRequest__Output, _vsremote_ListCommandsResponse__Output>
   ListDirectory: MethodDefinition<_vsremote_ListDirectoryRequest, _vsremote_ListDirectoryResponse, _vsremote_ListDirectoryRequest__Output, _vsremote_ListDirectoryResponse__Output>
   Login: MethodDefinition<_vsremote_LoginRequest, _vsremote_LoginResponse, _vsremote_LoginRequest__Output, _vsremote_LoginResponse__Output>
   ReadFile: MethodDefinition<_vsremote_ReadFileRequest, _vsremote_ReadFileResponse, _vsremote_ReadFileRequest__Output, _vsremote_ReadFileResponse__Output>

@@ -20,8 +20,8 @@ IVsRemoteFileSystemProvider fsProvider = new BasePathFsProvider(new()
         });
 */
 
-//        builder.Services.AddVsRemote(fsProvider, options =>
-builder.Services.AddVsRemote(fsProvider, new SampleAuthKeyAuthentication(), options =>
+        builder.Services.AddVsRemote(fsProvider, options =>
+//builder.Services.AddVsRemote(fsProvider, new SampleAuthKeyAuthentication(), options =>
 {
     options.EnableDetailedErrors = true;
 });

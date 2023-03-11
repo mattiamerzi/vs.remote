@@ -10,11 +10,18 @@ type SubtypeConstructor<Constructor extends new (...args: any) => any, Subtype> 
 export interface ProtoGrpcType {
   vsremote: {
     AuthResult: EnumTypeDefinition
+    Command: MessageTypeDefinition
+    CommandParameter: MessageTypeDefinition
     CreateDirectoryRequest: MessageTypeDefinition
     CreateDirectoryResponse: MessageTypeDefinition
     DeleteFileRequest: MessageTypeDefinition
     DeleteFileResponse: MessageTypeDefinition
+    ExecuteCommandRequest: MessageTypeDefinition
+    ExecuteCommandResponse: MessageTypeDefinition
+    ExecutionCommandParameter: MessageTypeDefinition
     FileType: EnumTypeDefinition
+    ListCommandsRequest: MessageTypeDefinition
+    ListCommandsResponse: MessageTypeDefinition
     ListDirectoryRequest: MessageTypeDefinition
     ListDirectoryResponse: MessageTypeDefinition
     LoginRequest: MessageTypeDefinition

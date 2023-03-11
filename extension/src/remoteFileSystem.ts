@@ -16,6 +16,11 @@ import type { LoginRequest } from './vsremote/LoginRequest';
 import type { LoginResponse__Output } from './vsremote/LoginResponse';
 import type { WriteFileRequest } from './vsremote/WriteFileRequest';
 import type { WriteFileResponse__Output } from './vsremote/WriteFileResponse';
+import type { ListCommandsRequest } from './vsremote/ListCommandsRequest';
+import type { ListCommandsResponse__Output } from './vsremote/ListCommandsResponse';
+import type { ExecuteCommandRequest } from './vsremote/ExecuteCommandRequest';
+import type { ExecuteCommandResponse__Output } from './vsremote/ExecuteCommandResponse';
+import type { ExecutionCommandParameter } from './vsremote/ExecutionCommandParameter';
 import { VsFsEntry__Output } from './vsremote/VsFsEntry';
 import { FileType } from './vsremote/FileType';
 import { VsRemoteClient } from './vsremote/VsRemote';
@@ -47,6 +52,34 @@ export class FileStat implements vscode.FileStat {
 	}
 }
 
+export class VsRemoteCommand {
+	name: string;
+	description: string;
+	parameters: VsRemoteCommandParameter[];
+	constructor(name: string, description: string, parameters: VsRemoteCommandParameter[]) {
+		this.name = name;
+		this.description = description;
+		this.parameters = parameters;
+	}
+}
+export class VsRemoteCommandParameter {
+	name: string;
+	description: string;
+	value: string = '';
+	constructor(name: string, description: string) {
+		this.name = name;
+		this.description = description;
+	}
+}
+export class VsRemoteCommandResponse {
+	status: boolean;
+	message: string | null;
+	constructor(status: boolean, message: string | null) {
+		this.status = status;
+		this.message = message;
+	}
+}
+
 function fsEntryTypeToVsCodeType(fileType: FileType):vscode.FileType  {
 	return fileType as number as vscode.FileType;
 }
@@ -60,7 +93,7 @@ export class VsRemoteFsProvider implements vscode.FileSystemProvider {
 	constructor(remote: VsRemoteHost) {
 		const connectHost = `${remote.host}:${remote.port}`;
 		console.log(`Vs.Remote connect(${connectHost})`);
-		const client: VsRemoteClient = init_gRPC(connectHost);
+		const client: VsRemoteClient | undefined = init_gRPC(connectHost);
 		this.remote = remote;
 		this.client = client;
 	}
@@ -117,12 +150,67 @@ export class VsRemoteFsProvider implements vscode.FileSystemProvider {
 		});
 	}
 
-	checkError<T>(uri: vscode.Uri, retry: boolean, err: grpc.ServiceError, resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: any) => void, retryCallback: () => Promise<T>): void {
+	checkError<T>(uri: vscode.Uri | null, retry: boolean, err: grpc.ServiceError, resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: any) => void, retryCallback: () => Promise<T>): void {
 		if (!retry && tokenExpired(err)) {
 			resolve(this.loginAndRepeat(retryCallback));
 		} else {
 			reject(reportError(err, uri));
 		}
+	}
+
+	listCommands(retry: boolean = false): Promise<VsRemoteCommand[] | null> {
+		const listCommandsRequest: ListCommandsRequest = {
+			authToken: this.auth_token
+		}
+		return new Promise<VsRemoteCommand[] | null>((resolve, reject) => {
+			if (this.client == undefined) { return reject(new Error("gRPC Client unavailable")); }
+			this.client.ListCommands(listCommandsRequest, (err: grpc.ServiceError | null, feature: ListCommandsResponse__Output | undefined) => {
+				if (!err) {
+					console.log(`OK : ListCommands() = ${JSON.stringify(feature)}`);
+					const commandsResponse:ListCommandsResponse__Output = feature as ListCommandsResponse__Output;
+					if (commandsResponse.hasCommands) {
+						resolve(
+							commandsResponse.commands.map(cmd => new VsRemoteCommand(cmd.name, cmd.description,
+								cmd.params.map(p => new VsRemoteCommandParameter(p.name, p.description))))
+						);
+					}
+					else {
+						resolve(null);
+					}
+				} else {
+					console.log(`ERR: ListCommands() = ${err}`);
+					this.checkError(null, retry, err, resolve, reject, () => this.listCommands(true));
+				}
+			});
+		});
+	}
+
+	executeCommand(command: VsRemoteCommand, retry: boolean = false): Promise<VsRemoteCommandResponse> {
+		const executeCommandRequest: ExecuteCommandRequest = {
+			authToken: this.auth_token,
+			command: command.name,
+		}
+		let param: ExecutionCommandParameter;
+		executeCommandRequest.params = [];
+		command.parameters.forEach(p => {
+			param = { name: p.name, value: p.value };
+			executeCommandRequest.params?.push(param);
+		});
+		return new Promise<VsRemoteCommandResponse>((resolve, reject) => {
+			if (this.client == undefined) { return reject(new Error("gRPC Client unavailable")); }
+			this.client.ExecuteCommand(executeCommandRequest, (err: grpc.ServiceError | null, feature: ExecuteCommandResponse__Output | undefined) => {
+				if (!err) {
+					console.log(`OK : ExecuteCommand(${command.name}) = ${JSON.stringify(feature)}`);
+					const commandsResponse:ExecuteCommandResponse__Output = feature as ExecuteCommandResponse__Output;
+					resolve(
+						new VsRemoteCommandResponse(commandsResponse.status, commandsResponse.message)
+					)
+				} else {
+					console.log(`ERR: ExecuteCommand(${command.name}) = ${err}`);
+					this.checkError(null, retry, err, resolve, reject, () => this.executeCommand(command, true));
+				}
+			});
+		});
 	}
 
 	stat(uri: vscode.Uri, retry: boolean = false): Promise<vscode.FileStat> {
