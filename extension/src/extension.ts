@@ -2,6 +2,7 @@
 
 import * as vscode from 'vscode';
 import { VsRemoteFs } from './fileSystemProvider';
+import { VsRemoteCommand } from './remoteFilesystem';
 import { VsRemoteSettings } from './settings';
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -22,7 +23,10 @@ export async function activate(context: vscode.ExtensionContext) {
 					if (await settings.checkAuth(remote)) {
 						vsRemote.connect(remote);
 						vsRemote.login(remote);
-						vscode.commands.executeCommand('setContext', 'vsrem.hasVsRemoteCommands', true);
+						let remoteCommands = await vsRemote.listRemoteCommands(remote);
+//						if (remoteCommands && remoteCommands?.length > 0) {
+							vscode.commands.executeCommand('setContext', 'vsrem.hasVsRemoteCommands', true);
+//						}
 					}
 				}
 			} catch { }
@@ -45,7 +49,43 @@ export async function activate(context: vscode.ExtensionContext) {
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand('vsrem.showVsRemoteCommands', async() => {
-		console.log('vsrem.showVsRemoteCommands OK!');
+		console.log('in vsrem.showVsRemoteCommands');
+		const activeTextEditor = vscode.window.activeTextEditor;
+		if (activeTextEditor != null) {
+			const { authority, path } = activeTextEditor.document.uri;
+			console.log(`currently open file authority: ${authority}`)
+			console.log(`currently open file path: ${path}`);
+			const settings = new VsRemoteSettings();
+			const remote = settings.getRemote(authority);
+			if (remote == undefined)
+				return;
+			const vsRemote = VsRemoteFs.Instance;
+			const remoteCommands = await vsRemote.listRemoteCommands(remote);
+			if (remoteCommands == undefined)
+				return;
+			let picked_cmd = await vscode.window.showQuickPick(
+				remoteCommands?.map(cmd => {
+					return {
+					label: cmd.name,
+					description: cmd.description,
+					command: cmd
+				}}),
+				{
+					placeHolder: 'Choose a Vs.Remote enabled host'
+				}
+			);
+			if (picked_cmd == undefined)
+				return;
+			for (let param of picked_cmd.command.parameters) {
+				let pvalue = await vscode.window.showInputBox({
+					prompt: `${param.description}`
+				})
+				if (pvalue == undefined)
+					return;
+				param.value = pvalue;
+			}
+			vsRemote.executeRemoteCommand(remote, picked_cmd.command);
+		}
 	}));
 }
 

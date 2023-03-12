@@ -30,7 +30,7 @@ internal sealed class VsRemoteService : VsRemote.VsRemoteBase
             {
                 response.HasCommands = true;
                 response.Commands.AddRange(
-                    remoteCommands.GetCommands().Select(c => {
+                    commands.Select(c => {
                         var cmd = new Command()
                         {
                             Name = c.Name,
@@ -65,14 +65,21 @@ internal sealed class VsRemoteService : VsRemote.VsRemoteBase
         await ValidateToken(request.AuthToken);
         try
         {
-            var command = remoteCommands.GetCommands().First(c => c.Name == request.Command);
-            var result = await command.Action(request.AuthToken, request.Params.ToDictionary(p => p.Name, p => p.Value));
-            logger.LogDebug("ExecuteCommand({cmd}) OK", request.Command);
-            return new ExecuteCommandResponse()
+            if (remoteCommands.TryGetCommand(request.Command, out IVsRemoteCommand? command))
             {
-                Status = result.Success,
-                Message = result.Message
-            };
+                var (RelativePath, RemoteFs) = remoteFsProvider.FromPath(request.Path, request.AuthToken);
+                var result = await command.Action(request.AuthToken, RemoteFs, RelativePath, request.Params.ToDictionary(p => p.Name, p => p.Value));
+                logger.LogDebug("ExecuteCommand({cmd}) OK", request.Command);
+                return new ExecuteCommandResponse()
+                {
+                    Status = result.Success,
+                    Message = result.Message
+                };
+            }
+            else
+            {
+                throw new Exception($"no such command: {request.Command}");
+            }
         }
         catch(Exception ex)
         {

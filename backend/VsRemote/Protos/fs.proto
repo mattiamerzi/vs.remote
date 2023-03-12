@@ -73,6 +73,7 @@ message CommandParameter {
 message ExecuteCommandRequest {
     string auth_token = 1;
     string command = 2;
+    string path = 3;
     repeated ExecutionCommandParameter params = 10;
 }
 

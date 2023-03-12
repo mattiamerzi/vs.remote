@@ -12,6 +12,5 @@ public interface IVsRemoteCommand
     public string Name { get; }
     public string Description { get; }
     public IEnumerable<VsRemoteCommandParameter> Parameters { get; }
-    public Task<VsRemoteCommandResult> Action(string auth_token, Dictionary<string, string> parameters);
-
+    public Task<VsRemoteCommandResult> Action(string auth_token, IVsRemoteFileSystem remoteFs, string relativePath, Dictionary<string, string> parameters);
 }

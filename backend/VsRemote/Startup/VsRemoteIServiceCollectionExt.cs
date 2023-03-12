@@ -1,6 +1,7 @@
 ﻿using Grpc.AspNetCore.Server;
 using Microsoft.Extensions.DependencyInjection;
 using VsRemote.Interfaces;
+using VsRemote.Model;
 using VsRemote.Model.Auth;
 
 namespace VsRemote.Startup;
@@ -16,9 +17,8 @@ public static class VsRemoteIServiceCollectionExt
     private static IServiceCollection InternalAddVsRemote(IServiceCollection serviceCollection, IVsRemoteFileSystemProvider vsRemoteFileSystemProvider, IVsRemoteAuthenticator? vsRemoteAuthenticator, Action<GrpcServiceOptions>? configureOptions)
     {
         serviceCollection.AddGrpc(grpcoptions =>
-        {
-            configOverride(grpcoptions);
-        });
+            configOverride(grpcoptions)
+        );
 
         serviceCollection.AddGrpcReflection();
         serviceCollection.AddSingleton<IVsRemoteFileSystemProvider>(vsRemoteFileSystemProvider);
@@ -31,6 +31,32 @@ public static class VsRemoteIServiceCollectionExt
             opt.MaxSendMessageSize = int.MaxValue;
             configureOptions?.Invoke(opt);
         }
+    }
+
+}
+
+public class VsRemoteServiceBuilder
+{
+    internal IVsRemoteFileSystemProvider? VsRemoteFileSystemProvider;
+    internal IVsRemoteAuthenticator? VsRemoteAuthenticator;
+    internal VsRemoteCommands VsRemoteCommands = new VsRemoteCommands();
+
+    public VsRemoteServiceBuilder SetRemoteFileSystemProvider(IVsRemoteFileSystemProvider vsRemoteFileSystemProvider)
+    {
+        VsRemoteFileSystemProvider = vsRemoteFileSystemProvider;
+        return this;
+    }
+
+    public VsRemoteServiceBuilder SetAuthenticator(IVsRemoteAuthenticator vsRemoteAuthenticator)
+    {
+        VsRemoteAuthenticator = vsRemoteAuthenticator;
+        return this;
+    }
+
+    public VsRemoteServiceBuilder AddCommand(IVsRemoteCommand vsRemoteCommand)
+    {
+        VsRemoteCommands.AddCommand(vsRemoteCommand);
+        return this;
     }
 
 }
