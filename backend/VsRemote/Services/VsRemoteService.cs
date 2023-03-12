@@ -68,7 +68,7 @@ internal sealed class VsRemoteService : VsRemote.VsRemoteBase
             if (remoteCommands.TryGetCommand(request.Command, out IVsRemoteCommand? command))
             {
                 var (RelativePath, RemoteFs) = remoteFsProvider.FromPath(request.Path, request.AuthToken);
-                var result = await command.Action(request.AuthToken, RemoteFs, RelativePath, request.Params.ToDictionary(p => p.Name, p => p.Value));
+                var result = await command.RunCommandAsync(request.AuthToken, RemoteFs, RelativePath, request.Params.ToDictionary(p => p.Name, p => p.Value));
                 logger.LogDebug("ExecuteCommand({cmd}) OK", request.Command);
                 return new ExecuteCommandResponse()
                 {

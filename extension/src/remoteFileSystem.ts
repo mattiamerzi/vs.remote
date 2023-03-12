@@ -72,10 +72,10 @@ export class VsRemoteCommandParameter {
 	}
 }
 export class VsRemoteCommandResponse {
-	status: boolean;
-	message: string | null;
-	constructor(status: boolean, message: string | null) {
-		this.status = status;
+	success: boolean;
+	message: string;
+	constructor(success: boolean, message: string) {
+		this.success = success;
 		this.message = message;
 	}
 }

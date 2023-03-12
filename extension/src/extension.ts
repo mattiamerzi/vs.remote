@@ -24,9 +24,9 @@ export async function activate(context: vscode.ExtensionContext) {
 						vsRemote.connect(remote);
 						vsRemote.login(remote);
 						let remoteCommands = await vsRemote.listRemoteCommands(remote);
-//						if (remoteCommands && remoteCommands?.length > 0) {
+						if (remoteCommands && remoteCommands?.length > 0) {
 							vscode.commands.executeCommand('setContext', 'vsrem.hasVsRemoteCommands', true);
-//						}
+						}
 					}
 				}
 			} catch { }
@@ -71,7 +71,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					command: cmd
 				}}),
 				{
-					placeHolder: 'Choose a Vs.Remote enabled host'
+					placeHolder: 'Choose a Vs.Remote Command to execute'
 				}
 			);
 			if (picked_cmd == undefined)
@@ -84,7 +84,12 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				param.value = pvalue;
 			}
-			vsRemote.executeRemoteCommand(remote, picked_cmd.command);
+			const cmdresult = await vsRemote.executeRemoteCommand(remote, picked_cmd.command);
+			if (cmdresult.success) {
+				vscode.window.showInformationMessage(cmdresult.message, { modal: true });
+			} else {
+				vscode.window.showErrorMessage(cmdresult.message, { modal: true });
+			}
 		}
 	}));
 }
