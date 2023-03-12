@@ -5,11 +5,13 @@ import type { ExecutionCommandParameter as _vsremote_ExecutionCommandParameter, 
 export interface ExecuteCommandRequest {
   'authToken'?: (string);
   'command'?: (string);
+  'path'?: (string);
   'params'?: (_vsremote_ExecutionCommandParameter)[];
 }
 
 export interface ExecuteCommandRequest__Output {
   'authToken': (string);
   'command': (string);
+  'path': (string);
   'params': (_vsremote_ExecutionCommandParameter__Output)[];
 }

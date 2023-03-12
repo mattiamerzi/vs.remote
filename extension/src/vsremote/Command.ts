@@ -5,11 +5,13 @@ import type { CommandParameter as _vsremote_CommandParameter, CommandParameter__
 export interface Command {
   'name'?: (string);
   'description'?: (string);
+  'modifiesFileContent'?: (boolean);
   'params'?: (_vsremote_CommandParameter)[];
 }
 
 export interface Command__Output {
   'name': (string);
   'description': (string);
+  'modifiesFileContent': (boolean);
   'params': (_vsremote_CommandParameter__Output)[];
 }

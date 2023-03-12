@@ -76,6 +76,16 @@ export async function activate(context: vscode.ExtensionContext) {
 			);
 			if (picked_cmd == undefined)
 				return;
+			let dirtyop: string|null|undefined = null;
+			const save = "Save changes";
+			const discard = "Discard changes";
+			const cancel = "Cancel command";
+			if (picked_cmd.command.modifies_file_content && activeTextEditor.document.isDirty) {
+				dirtyop = await vscode.window.showWarningMessage("Chosen command might modify the currently active document, but the document has unsaved changes, proceed anyway?",
+					save, discard, cancel);
+				if (dirtyop == undefined)
+					return;
+			}
 			for (let param of picked_cmd.command.parameters) {
 				let pvalue = await vscode.window.showInputBox({
 					prompt: `${param.description}`
@@ -84,12 +94,26 @@ export async function activate(context: vscode.ExtensionContext) {
 					return;
 				param.value = pvalue;
 			}
-			const cmdresult = await vsRemote.executeRemoteCommand(remote, picked_cmd.command);
+			if (dirtyop != null) {
+				switch (dirtyop) {
+					case save:
+						await activeTextEditor.document.save();
+						break;
+					case discard:
+						await vscode.commands.executeCommand('workbench.action.files.revert');
+						break;
+					default:
+						return;
+				}
+			}
+			const cmdresult = await vsRemote.executeRemoteCommand(activeTextEditor.document.uri, remote, picked_cmd.command);
 			if (cmdresult.success) {
 				vscode.window.showInformationMessage(cmdresult.message, { modal: true });
 			} else {
 				vscode.window.showErrorMessage(cmdresult.message, { modal: true });
 			}
+			if (picked_cmd.command.modifies_file_content)
+				await vscode.commands.executeCommand('workbench.action.files.revert'); // works as "reload"
 		}
 	}));
 }

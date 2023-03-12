@@ -7,4 +7,11 @@ using VsRemote.Interfaces;
 
 namespace VsRemote.Model;
 
-public record VsRemoteCommandParameter (string Name, string Description);
+public record VsRemoteCommandParameter (string Name, string Description, VsRemoteCommandParameterValidation Validation = VsRemoteCommandParameterValidation.None);
+
+public enum VsRemoteCommandParameterValidation
+{
+    None,
+    Integer,
+    NonEmpty
+}

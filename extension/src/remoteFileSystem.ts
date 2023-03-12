@@ -55,10 +55,12 @@ export class FileStat implements vscode.FileStat {
 export class VsRemoteCommand {
 	name: string;
 	description: string;
+	modifies_file_content: boolean;
 	parameters: VsRemoteCommandParameter[];
-	constructor(name: string, description: string, parameters: VsRemoteCommandParameter[]) {
+	constructor(name: string, description: string, modifies_file_content: boolean, parameters: VsRemoteCommandParameter[]) {
 		this.name = name;
 		this.description = description;
+		this.modifies_file_content = modifies_file_content;
 		this.parameters = parameters;
 	}
 }
@@ -170,7 +172,7 @@ export class VsRemoteFsProvider implements vscode.FileSystemProvider {
 					const commandsResponse:ListCommandsResponse__Output = feature as ListCommandsResponse__Output;
 					if (commandsResponse.hasCommands) {
 						resolve(
-							commandsResponse.commands.map(cmd => new VsRemoteCommand(cmd.name, cmd.description,
+							commandsResponse.commands.map(cmd => new VsRemoteCommand(cmd.name, cmd.description, cmd.modifiesFileContent,
 								cmd.params.map(p => new VsRemoteCommandParameter(p.name, p.description))))
 						);
 					}
@@ -185,10 +187,11 @@ export class VsRemoteFsProvider implements vscode.FileSystemProvider {
 		});
 	}
 
-	executeCommand(command: VsRemoteCommand, retry: boolean = false): Promise<VsRemoteCommandResponse> {
+	executeCommand(uri: vscode.Uri, command: VsRemoteCommand, retry: boolean = false): Promise<VsRemoteCommandResponse> {
 		const executeCommandRequest: ExecuteCommandRequest = {
 			authToken: this.auth_token,
 			command: command.name,
+			path: uri.path
 		}
 		let param: ExecutionCommandParameter;
 		executeCommandRequest.params = [];
@@ -207,7 +210,7 @@ export class VsRemoteFsProvider implements vscode.FileSystemProvider {
 					)
 				} else {
 					console.log(`ERR: ExecuteCommand(${command.name}) = ${err}`);
-					this.checkError(null, retry, err, resolve, reject, () => this.executeCommand(command, true));
+					this.checkError(null, retry, err, resolve, reject, () => this.executeCommand(uri, command, true));
 				}
 			});
 		});

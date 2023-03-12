@@ -26,6 +26,7 @@ public class CommandFactory
 internal class EmptyAction: ResultFromExceptionCommand
 {
     private readonly Action action;
+    public override bool CanChangeFile => false;
     public EmptyAction(string name, string description, Action action): base(name, description)
         => this.action = action;
 
@@ -36,6 +37,7 @@ internal class EmptyAction: ResultFromExceptionCommand
 internal class FileOnlyAction : ResultFromExceptionCommand
 {
     private readonly Action<IVsRemoteFileSystem, string> action;
+    public override bool CanChangeFile => true;
     public FileOnlyAction(string name, string description, Action<IVsRemoteFileSystem, string> action): base(name, description)
         => this.action = action;
 
@@ -65,6 +67,7 @@ internal abstract class ResultFromExceptionCommand : ParameterlessCommand
 internal class EmptyActionAsync: ResultFromExceptionCommandAsync
 {
     private readonly Func<Task> action;
+    public override bool CanChangeFile => false;
     public EmptyActionAsync(string name, string description, Func<Task> action): base(name, description)
         => this.action = action;
 
@@ -75,6 +78,7 @@ internal class EmptyActionAsync: ResultFromExceptionCommandAsync
 internal class FileOnlyActionAsync : ResultFromExceptionCommandAsync
 {
     private readonly Func<IVsRemoteFileSystem, string, Task> action;
+    public override bool CanChangeFile => true;
     public FileOnlyActionAsync(string name, string description, Func<IVsRemoteFileSystem, string, Task> action): base(name, description)
         => this.action = action;
 

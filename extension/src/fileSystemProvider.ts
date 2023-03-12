@@ -54,10 +54,10 @@ export class VsRemoteFs implements vscode.FileSystemProvider {
 		return this.onFs(remote.name, fs => fs.listCommands());
 	}
 
-	executeRemoteCommand(remote: VsRemoteHost, command: VsRemoteCommand): Promise<VsRemoteCommandResponse> {
+	executeRemoteCommand(uri: vscode.Uri, remote: VsRemoteHost, command: VsRemoteCommand): Promise<VsRemoteCommandResponse> {
 		if (remote == undefined)
 			remote = this.fss.values().next().value;
-		return this.onFs(remote.name, fs => fs.executeCommand(command));
+		return this.onFs(remote.name, fs => fs.executeCommand(uri, command));
 	}
 
 	stat(uri: vscode.Uri): Promise<vscode.FileStat> {

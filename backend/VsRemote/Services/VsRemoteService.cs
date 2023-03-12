@@ -34,12 +34,14 @@ internal sealed class VsRemoteService : VsRemote.VsRemoteBase
                         var cmd = new Command()
                         {
                             Name = c.Name,
-                            Description = c.Description
+                            Description = c.Description,
+                            ModifiesFileContent = c.CanChangeFile
                         };
                         cmd.Params.Add(c.Parameters.Select(p => new CommandParameter()
                         {
                             Name = p.Name,
-                            Description = p.Description
+                            Description = p.Description,
+                            Validation = p.Validation.ToProtoBuf()
                         }));
                         return cmd;
                     })

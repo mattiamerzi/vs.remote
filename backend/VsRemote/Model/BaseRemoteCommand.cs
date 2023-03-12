@@ -6,6 +6,7 @@ public abstract class BaseRemoteCommand : IVsRemoteCommand
 {
     public string Name { get; init; }
     public string Description { get; init; }
+    public abstract bool CanChangeFile { get; }
 
     public abstract IEnumerable<VsRemoteCommandParameter> Parameters { get; }
 

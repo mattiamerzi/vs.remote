@@ -1,3 +1,4 @@
+using System.Text;
 using VsRemote.Interfaces;
 using VsRemote.Model;
 using VsRemote.Providers;
@@ -63,17 +64,25 @@ class SampleCommand : BaseRemoteCommand
         new( "param-two", "Second sample parameter" )
     };
     public override IEnumerable<VsRemoteCommandParameter> Parameters => parameters;
+    public override bool CanChangeFile => true;
 
     public SampleCommand() : base("sample-command", "Sample command with parameters") { }
 
-    public override Task<VsRemoteCommandResult> RunCommandAsync(string auth_token, IVsRemoteFileSystem remoteFs, string relativePath, Dictionary<string, string> parameters)
+    public override async Task<VsRemoteCommandResult> RunCommandAsync(string auth_token, IVsRemoteFileSystem remoteFs, string relativePath, Dictionary<string, string> parameters)
     {
-        Console.WriteLine("Sample command invoked; params:");
+        var ro_mem = await remoteFs.ReadFile(relativePath);
+        StringBuilder sb = new StringBuilder(Encoding.ASCII.GetString(ro_mem.ToArray()));
+        sb.AppendLine().AppendLine("Sample command invoked; params:");
         foreach (var p in parameters)
         {
-            Console.WriteLine($"  {p.Key} = {p.Value}");
+            sb.AppendLine($"  {p.Key} = {p.Value}");
         }
-        return Task.FromResult(Success()); // or Failure() -- you can even pass an optional message to both functions
+        await remoteFs.WriteFile(relativePath,
+            new ReadOnlyMemory<byte>(
+                Encoding.ASCII.GetBytes(sb.ToString())
+            ),
+        true, true);
+        return Success(); // or Failure() -- you can even pass an optional message to both functions
     }
 
 }

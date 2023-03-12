@@ -33,6 +33,12 @@ enum AuthResult {
     EXPIRED = 4;
 }
 
+enum CommandParameterValidation {
+    NONE = 0;
+    INTEGER = 1;
+    NON_EMPTY = 2;
+}
+
 
 message VsFsEntry {
     string name = 1;
@@ -58,12 +64,14 @@ message ListCommandsResponse {
 message Command {
     string name = 1;
     string description = 2;
+    bool modifies_file_content = 3;
     repeated CommandParameter params = 10;
 }
 
 message CommandParameter {
     string name = 1;
     string description = 2;
+    CommandParameterValidation validation = 10;
 }
 
 
@@ -80,6 +88,7 @@ message ExecuteCommandRequest {
 message ExecuteCommandResponse {
     bool status = 1;
     string message = 2;
+    bool modified_file = 3;
 }
 
 message ExecutionCommandParameter {
