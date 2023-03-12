@@ -21,6 +21,7 @@ import type { ListCommandsResponse__Output } from './vsremote/ListCommandsRespon
 import type { ExecuteCommandRequest } from './vsremote/ExecuteCommandRequest';
 import type { ExecuteCommandResponse__Output } from './vsremote/ExecuteCommandResponse';
 import type { ExecutionCommandParameter } from './vsremote/ExecutionCommandParameter';
+import type { CommandParameterValidation } from './vsremote/CommandParameterValidation';
 import { VsFsEntry__Output } from './vsremote/VsFsEntry';
 import { FileType } from './vsremote/FileType';
 import { VsRemoteClient } from './vsremote/VsRemote';
@@ -67,10 +68,12 @@ export class VsRemoteCommand {
 export class VsRemoteCommandParameter {
 	name: string;
 	description: string;
+	validation: CommandParameterValidation;
 	value: string = '';
-	constructor(name: string, description: string) {
+	constructor(name: string, validation: CommandParameterValidation, description: string) {
 		this.name = name;
 		this.description = description;
+		this.validation = validation;
 	}
 }
 export class VsRemoteCommandResponse {
@@ -173,7 +176,7 @@ export class VsRemoteFsProvider implements vscode.FileSystemProvider {
 					if (commandsResponse.hasCommands) {
 						resolve(
 							commandsResponse.commands.map(cmd => new VsRemoteCommand(cmd.name, cmd.description, cmd.modifiesFileContent,
-								cmd.params.map(p => new VsRemoteCommandParameter(p.name, p.description))))
+								cmd.params.map(p => new VsRemoteCommandParameter(p.name, p.validation, p.description))))
 						);
 					}
 					else {

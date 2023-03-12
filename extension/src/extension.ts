@@ -4,6 +4,7 @@ import * as vscode from 'vscode';
 import { VsRemoteFs } from './fileSystemProvider';
 import { VsRemoteCommand } from './remoteFilesystem';
 import { VsRemoteSettings } from './settings';
+import { CommandParameterValidation } from './vsremote/CommandParameterValidation';
 
 export async function activate(context: vscode.ExtensionContext) {
 	console.log('Vs.Remote says "Hello, World!"');
@@ -86,13 +87,42 @@ export async function activate(context: vscode.ExtensionContext) {
 				if (dirtyop == undefined)
 					return;
 			}
+			let pvalue: string|undefined = undefined;
 			for (let param of picked_cmd.command.parameters) {
-				let pvalue = await vscode.window.showInputBox({
-					prompt: `${param.description}`
-				})
-				if (pvalue == undefined)
-					return;
-				param.value = pvalue;
+				let valid: boolean = false;
+				while (!valid) {
+					pvalue = await vscode.window.showInputBox({
+						prompt: `${param.description}`
+					})
+					if (pvalue == undefined)
+						return;
+					switch (param.validation) {
+						case CommandParameterValidation.NONE:
+							valid = true;
+							break;
+						case CommandParameterValidation.NON_EMPTY:
+							if (pvalue.trim().length == 0) {
+								await vscode.window.showErrorMessage(`Empty or blank string is not valid for parameter ${param.name}`, { modal: true });
+								valid = false;
+							}
+							else {
+								valid = true;
+								pvalue = pvalue.trim();
+							}
+							break;
+						case CommandParameterValidation.INTEGER:
+							let intvalue = parseInt(pvalue);
+							if (isNaN(intvalue)) {
+								await vscode.window.showErrorMessage(`Parameter ${param.name} must be a valid number`, { modal: true });
+								valid = false;
+							} else {
+								pvalue = intvalue.toString();
+								valid = true;
+							}
+							break;
+					}
+				}
+				param.value = pvalue as string;
 			}
 			if (dirtyop != null) {
 				switch (dirtyop) {

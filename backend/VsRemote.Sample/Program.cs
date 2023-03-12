@@ -60,8 +60,9 @@ class SampleCommand : BaseRemoteCommand
 {
     private static readonly List<VsRemoteCommandParameter> parameters = new()
     {
-        new( "param-one", "First sample parameter" ),
-        new( "param-two", "Second sample parameter" )
+        new( "param-one", "Unverified sample parameter" ),
+        new( "param-two", "Second non-empty sample parameter", VsRemoteCommandParameterValidation.NonEmpty ),
+        new( "param-three", "Third, integer sample parameter", VsRemoteCommandParameterValidation.Integer )
     };
     public override IEnumerable<VsRemoteCommandParameter> Parameters => parameters;
     public override bool CanChangeFile => true;
