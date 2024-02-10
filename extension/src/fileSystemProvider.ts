@@ -1,18 +1,31 @@
+'use strict'
+
 import * as vscode from 'vscode';
 import { VsRemoteHost } from './settings';
-import { VsRemoteFsProvider } from './remoteFilesystem';
+import { VsRemoteFsProvider, VsRemoteCommand, VsRemoteCommandResponse } from './remoteFileSystem';
 
 export class VsRemoteFs implements vscode.FileSystemProvider {
+	public static Instance: VsRemoteFs;
 	private fss: Map<string, VsRemoteFsProvider> = new Map<string, VsRemoteFsProvider>();
 
 	constructor() {
 	}
 
 	onFs<T>(key: string, action: (fs: VsRemoteFsProvider) => T): T {
-//		console.log(`onFs(${key}) = ${action.toString()}`);
+		console.log(`=>  onFs(${key},${action.toString()})`);
 		const fs: VsRemoteFsProvider | undefined = this.fss.get(key);
-		if (fs)
-			return action(fs);
+		if (fs) {
+			try {
+				var res = action(fs);
+				console.log(`OK  onFs(${key}) = ${action.toString()} => ${res}`);
+				return res;
+			} catch (err) {
+				console.log(`ERR onFs(${key}) = ${action.toString()} => ${err}`);
+			}
+		}
+		else {
+			console.log(`ERR onFs(${key}) not found`);
+		}
 		throw vscode.FileSystemError.Unavailable(key);
 	}
 
@@ -30,7 +43,21 @@ export class VsRemoteFs implements vscode.FileSystemProvider {
 			return this.onFs(remote.name, fs => fs.login());
 		} catch {
 			return Promise.resolve(false);
+		} finally {
+			VsRemoteFs.Instance = this;
 		}
+	}
+
+	listRemoteCommands(remote: VsRemoteHost): Promise<VsRemoteCommand[] | null> {
+		if (remote == undefined)
+			remote = this.fss.values().next().value;
+		return this.onFs(remote.name, fs => fs.listCommands());
+	}
+
+	executeRemoteCommand(uri: vscode.Uri | null | undefined, remote: VsRemoteHost, command: VsRemoteCommand): Promise<VsRemoteCommandResponse> {
+		if (remote == undefined)
+			remote = this.fss.values().next().value;
+		return this.onFs(remote.name, fs => fs.executeCommand(uri, command));
 	}
 
 	stat(uri: vscode.Uri): Promise<vscode.FileStat> {

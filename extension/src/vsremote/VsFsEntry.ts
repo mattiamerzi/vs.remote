@@ -1,4 +1,4 @@
-// Original file: ../srv/Vs.Remote/Vs.Remote.gRPC/Protos/fs.proto
+// Original file: ../backend/VsRemote/Protos/fs.proto
 
 import type { FileType as _vsremote_FileType } from '../vsremote/FileType';
 import type { Long } from '@grpc/proto-loader';

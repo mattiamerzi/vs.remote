@@ -1,4 +1,4 @@
-// Original file: ../srv/Vs.Remote/Vs.Remote.gRPC/Protos/fs.proto
+// Original file: ../backend/VsRemote/Protos/fs.proto
 
 import type { AuthResult as _vsremote_AuthResult } from '../vsremote/AuthResult';
 

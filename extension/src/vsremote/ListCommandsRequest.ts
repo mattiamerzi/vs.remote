@@ -1,12 +1,10 @@
 // Original file: ../backend/VsRemote/Protos/fs.proto
 
 
-export interface StatRequest {
+export interface ListCommandsRequest {
   'authToken'?: (string);
-  'path'?: (string);
 }
 
-export interface StatRequest__Output {
+export interface ListCommandsRequest__Output {
   'authToken': (string);
-  'path': (string);
 }
