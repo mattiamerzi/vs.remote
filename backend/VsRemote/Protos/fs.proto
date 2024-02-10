@@ -39,6 +39,11 @@ enum CommandParameterValidation {
     NON_EMPTY = 2;
 }
 
+enum CommandTarget {
+    NO_TARGET = 0;
+    FILE_TARGET = 1;
+}
+
 
 message VsFsEntry {
     string name = 1;
@@ -64,7 +69,8 @@ message ListCommandsResponse {
 message Command {
     string name = 1;
     string description = 2;
-    bool modifies_file_content = 3;
+    CommandTarget command_target = 3;
+    bool modifies_file_content = 4;
     repeated CommandParameter params = 10;
 }
 

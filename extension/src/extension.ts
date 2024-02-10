@@ -2,9 +2,9 @@
 
 import * as vscode from 'vscode';
 import { VsRemoteFs } from './fileSystemProvider';
-import { VsRemoteCommand } from './remoteFilesystem';
 import { VsRemoteSettings } from './settings';
 import { CommandParameterValidation } from './vsremote/CommandParameterValidation';
+import { CommandTarget } from './vsremote/CommandTarget';
 
 export async function activate(context: vscode.ExtensionContext) {
 	console.log('Vs.Remote says "Hello, World!"');
@@ -51,9 +51,19 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(vscode.commands.registerCommand('vsrem.showVsRemoteCommands', async() => {
 		console.log('in vsrem.showVsRemoteCommands');
+		console.log('WS:', vscode.workspace.workspaceFolders);
+		console.log('WS1:' + vscode.workspace.workspaceFolders?.length);
+		let uri = null;
 		const activeTextEditor = vscode.window.activeTextEditor;
+		let onFile = activeTextEditor != null;
 		if (activeTextEditor != null) {
-			const { authority, path } = activeTextEditor.document.uri;
+			uri = activeTextEditor.document.uri;
+		} else {
+			if (vscode.workspace.workspaceFolders != null && vscode.workspace.workspaceFolders.length > 0)
+				uri = vscode.workspace.workspaceFolders[0].uri;
+		}
+		if (uri != null) {
+			const { authority, path } = uri;
 			console.log(`currently open file authority: ${authority}`)
 			console.log(`currently open file path: ${path}`);
 			const settings = new VsRemoteSettings();
@@ -61,11 +71,13 @@ export async function activate(context: vscode.ExtensionContext) {
 			if (remote == undefined)
 				return;
 			const vsRemote = VsRemoteFs.Instance;
-			const remoteCommands = await vsRemote.listRemoteCommands(remote);
-			if (remoteCommands == undefined)
+			let remoteCommands = await vsRemote.listRemoteCommands(remote);
+			if (!onFile)
+				remoteCommands = remoteCommands?.filter(cmd => cmd.target == CommandTarget.NO_TARGET) || null;
+			if (!remoteCommands)
 				return;
 			let picked_cmd = await vscode.window.showQuickPick(
-				remoteCommands?.map(cmd => {
+				remoteCommands.map(cmd => {
 					return {
 					label: cmd.name,
 					description: cmd.description,
@@ -81,10 +93,10 @@ export async function activate(context: vscode.ExtensionContext) {
 			const save = "Save changes";
 			const discard = "Discard changes";
 			const cancel = "Cancel command";
-			if (picked_cmd.command.modifies_file_content && activeTextEditor.document.isDirty) {
+			if (onFile && picked_cmd.command.modifies_file_content && activeTextEditor != null &&  activeTextEditor.document.isDirty) {
 				dirtyop = await vscode.window.showWarningMessage("Chosen command might modify the currently active document, but the document has unsaved changes, proceed anyway?",
 					save, discard, cancel);
-				if (dirtyop == undefined)
+				if (dirtyop == undefined || dirtyop == cancel)
 					return;
 			}
 			let pvalue: string|undefined = undefined;
@@ -124,10 +136,10 @@ export async function activate(context: vscode.ExtensionContext) {
 				}
 				param.value = pvalue as string;
 			}
-			if (dirtyop != null) {
+			if (onFile && dirtyop != null) {
 				switch (dirtyop) {
 					case save:
-						await activeTextEditor.document.save();
+						await activeTextEditor?.document.save();
 						break;
 					case discard:
 						await vscode.commands.executeCommand('workbench.action.files.revert');
@@ -136,11 +148,11 @@ export async function activate(context: vscode.ExtensionContext) {
 						return;
 				}
 			}
-			const cmdresult = await vsRemote.executeRemoteCommand(activeTextEditor.document.uri, remote, picked_cmd.command);
+			const cmdresult = await vsRemote.executeRemoteCommand(onFile ? activeTextEditor?.document.uri : null, remote, picked_cmd.command);
 			if (cmdresult.success) {
-				vscode.window.showInformationMessage(cmdresult.message, { modal: true });
+				vscode.window.showInformationMessage(cmdresult.message, { modal: false });
 			} else {
-				vscode.window.showErrorMessage(cmdresult.message, { modal: true });
+				vscode.window.showErrorMessage(cmdresult.message, { modal: false });
 			}
 			if (picked_cmd.command.modifies_file_content)
 				await vscode.commands.executeCommand('workbench.action.files.revert'); // works as "reload"

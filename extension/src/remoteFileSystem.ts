@@ -33,6 +33,7 @@ import * as grpc from '@grpc/grpc-js';
 import init_gRPC from './initVsRemote';
 import { VsRemoteHost } from './settings';
 import { AuthResult } from './vsremote/AuthResult';
+import { CommandTarget } from './vsremote/CommandTarget';
 
 export class FileStat implements vscode.FileStat {
 	type: vscode.FileType;
@@ -56,11 +57,13 @@ export class FileStat implements vscode.FileStat {
 export class VsRemoteCommand {
 	name: string;
 	description: string;
+	target: CommandTarget;
 	modifies_file_content: boolean;
 	parameters: VsRemoteCommandParameter[];
-	constructor(name: string, description: string, modifies_file_content: boolean, parameters: VsRemoteCommandParameter[]) {
+	constructor(name: string, description: string, target: CommandTarget, modifies_file_content: boolean, parameters: VsRemoteCommandParameter[]) {
 		this.name = name;
 		this.description = description;
+		this.target = target;
 		this.modifies_file_content = modifies_file_content;
 		this.parameters = parameters;
 	}
@@ -175,7 +178,7 @@ export class VsRemoteFsProvider implements vscode.FileSystemProvider {
 					const commandsResponse:ListCommandsResponse__Output = feature as ListCommandsResponse__Output;
 					if (commandsResponse.hasCommands) {
 						resolve(
-							commandsResponse.commands.map(cmd => new VsRemoteCommand(cmd.name, cmd.description, cmd.modifiesFileContent,
+							commandsResponse.commands.map(cmd => new VsRemoteCommand(cmd.name, cmd.description, cmd.commandTarget, cmd.modifiesFileContent,
 								cmd.params.map(p => new VsRemoteCommandParameter(p.name, p.validation, p.description))))
 						);
 					}
@@ -190,11 +193,11 @@ export class VsRemoteFsProvider implements vscode.FileSystemProvider {
 		});
 	}
 
-	executeCommand(uri: vscode.Uri, command: VsRemoteCommand, retry: boolean = false): Promise<VsRemoteCommandResponse> {
+	executeCommand(uri: vscode.Uri | null | undefined, command: VsRemoteCommand, retry: boolean = false): Promise<VsRemoteCommandResponse> {
 		const executeCommandRequest: ExecuteCommandRequest = {
 			authToken: this.auth_token,
 			command: command.name,
-			path: uri.path
+			path: uri?.path
 		}
 		let param: ExecutionCommandParameter;
 		executeCommandRequest.params = [];

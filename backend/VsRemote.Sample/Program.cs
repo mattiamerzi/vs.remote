@@ -1,4 +1,5 @@
 using System.Text;
+using VsRemote.Enums;
 using VsRemote.Interfaces;
 using VsRemote.Model;
 using VsRemote.Providers;
@@ -65,6 +66,7 @@ class SampleCommand : BaseRemoteCommand
         new( "param-three", "Third, integer sample parameter", VsRemoteCommandParameterValidation.Integer )
     };
     public override IEnumerable<VsRemoteCommandParameter> Parameters => parameters;
+    public override VsRemoteCommandTarget Target => VsRemoteCommandTarget.FILE;
     public override bool CanChangeFile => true;
 
     public SampleCommand() : base("sample-command", "Sample command with parameters") { }
@@ -72,7 +74,7 @@ class SampleCommand : BaseRemoteCommand
     public override async Task<VsRemoteCommandResult> RunCommandAsync(string auth_token, IVsRemoteFileSystem remoteFs, string relativePath, Dictionary<string, string> parameters)
     {
         var ro_mem = await remoteFs.ReadFile(relativePath);
-        StringBuilder sb = new StringBuilder(Encoding.ASCII.GetString(ro_mem.ToArray()));
+        StringBuilder sb = new(Encoding.ASCII.GetString(ro_mem.ToArray()));
         sb.AppendLine().AppendLine("Sample command invoked; params:");
         foreach (var p in parameters)
         {

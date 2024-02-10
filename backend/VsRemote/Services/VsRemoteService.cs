@@ -35,6 +35,7 @@ internal sealed class VsRemoteService : VsRemote.VsRemoteBase
                         {
                             Name = c.Name,
                             Description = c.Description,
+                            CommandTarget = c.Target.ToProtoBuf(),
                             ModifiesFileContent = c.CanChangeFile
                         };
                         cmd.Params.Add(c.Parameters.Select(p => new CommandParameter()

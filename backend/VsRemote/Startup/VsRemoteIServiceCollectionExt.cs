@@ -28,8 +28,7 @@ public static class VsRemoteIServiceCollectionExt
     {
         VsRemoteServiceBuilder builder = new();
         configureVsRemote(builder);
-        InternalAddVsRemote(serviceCollection, builder);
-        return serviceCollection;
+        return InternalAddVsRemote(serviceCollection, builder);
     }
 
     private static IServiceCollection InternalAddVsRemote(IServiceCollection serviceCollection, VsRemoteServiceBuilder builder)

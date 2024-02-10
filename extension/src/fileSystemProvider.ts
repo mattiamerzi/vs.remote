@@ -1,8 +1,8 @@
+'use strict'
+
 import * as vscode from 'vscode';
 import { VsRemoteHost } from './settings';
-import { VsRemoteFsProvider } from './remoteFilesystem';
-import { VsRemoteCommand } from './remoteFileSystem'
-import { VsRemoteCommandResponse } from './remoteFileSystem'
+import { VsRemoteFsProvider, VsRemoteCommand, VsRemoteCommandResponse } from './remoteFileSystem';
 
 export class VsRemoteFs implements vscode.FileSystemProvider {
 	public static Instance: VsRemoteFs;
@@ -54,7 +54,7 @@ export class VsRemoteFs implements vscode.FileSystemProvider {
 		return this.onFs(remote.name, fs => fs.listCommands());
 	}
 
-	executeRemoteCommand(uri: vscode.Uri, remote: VsRemoteHost, command: VsRemoteCommand): Promise<VsRemoteCommandResponse> {
+	executeRemoteCommand(uri: vscode.Uri | null | undefined, remote: VsRemoteHost, command: VsRemoteCommand): Promise<VsRemoteCommandResponse> {
 		if (remote == undefined)
 			remote = this.fss.values().next().value;
 		return this.onFs(remote.name, fs => fs.executeCommand(uri, command));

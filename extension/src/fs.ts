@@ -13,6 +13,7 @@ export interface ProtoGrpcType {
     Command: MessageTypeDefinition
     CommandParameter: MessageTypeDefinition
     CommandParameterValidation: EnumTypeDefinition
+    CommandTarget: EnumTypeDefinition
     CreateDirectoryRequest: MessageTypeDefinition
     CreateDirectoryResponse: MessageTypeDefinition
     DeleteFileRequest: MessageTypeDefinition

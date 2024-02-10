@@ -1,4 +1,5 @@
-﻿using VsRemote.Interfaces;
+﻿using VsRemote.Enums;
+using VsRemote.Interfaces;
 
 namespace VsRemote.Model;
 
@@ -6,8 +7,8 @@ public abstract class BaseRemoteCommand : IVsRemoteCommand
 {
     public string Name { get; init; }
     public string Description { get; init; }
+    public abstract VsRemoteCommandTarget Target { get; }
     public abstract bool CanChangeFile { get; }
-
     public abstract IEnumerable<VsRemoteCommandParameter> Parameters { get; }
 
     public BaseRemoteCommand(string name, string description)

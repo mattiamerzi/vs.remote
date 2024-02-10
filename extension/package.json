@@ -37,8 +37,12 @@
 		],
 		"menus": {
 			"commandPalette": [
-				{ "command": "vsrem.addVsRemoteFolder" },
-				{ "command": "vsrem.showVsRemoteCommands" }
+				{
+					"command": "vsrem.addVsRemoteFolder"
+				},
+				{
+					"command": "vsrem.showVsRemoteCommands"
+				}
 			]
 		}
 	},
@@ -47,7 +51,8 @@
 		"compile": "tsc -p ./",
 		"lint": "eslint \"src/**/*.ts\"",
 		"watch": "tsc -watch -p ./",
-		"grpc": "node ./node_modules/@grpc/proto-loader/build/bin/proto-loader-gen-types.js --grpcLib=@grpc/grpc-js --longs Number -O src// ../backend/VsRemote/Protos/fs.proto --defaults"
+		"grpc": "node ./node_modules/@grpc/proto-loader/build/bin/proto-loader-gen-types.js --grpcLib=@grpc/grpc-js --longs Number -O src// ../backend/VsRemote/Protos/fs.proto --defaults",
+		"proto": "copyfiles -f ../backend/VsRemote/Protos/fs.proto out/src/proto"
 	},
 	"devDependencies": {
 		"@types/node": "^16.11.7",
@@ -60,6 +65,7 @@
 	"dependencies": {
 		"@grpc/grpc-js": "^1.7.3",
 		"@grpc/proto-loader": "^0.7.3",
-		"axios": "^1.1.0"
+		"axios": "^1.1.0",
+		"copyfiles": "^2.4.1"
 	}
 }
