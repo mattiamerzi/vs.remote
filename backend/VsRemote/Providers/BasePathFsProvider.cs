@@ -9,19 +9,23 @@ namespace VsRemote.Providers;
 public class BasePathFsProvider : IVsRemoteFileSystemProvider
 {
     private readonly Dictionary<string, IVsRemoteFileSystem> remoteFilesystems;
+    private readonly Dictionary<string, BasePathFsProvider> mountPoints;
     private readonly IVsRemoteFileSystem virtualRootFs;
 
     public BasePathFsProvider(Dictionary<string, IVsRemoteFileSystem> rootFss)
+        : this(rootFss, new Dictionary<string, BasePathFsProvider>()) { }
+    public BasePathFsProvider(Dictionary<string, IVsRemoteFileSystem> rootFss, Dictionary<string, BasePathFsProvider> subMounts)
     {
-        foreach (var fs in rootFss)
+        if (rootFss.Keys.Intersect(subMounts.Keys).Any())
+            throw new InvalidPath("Duplicated mount point");
+        foreach (var mountPoint in rootFss.Keys.Concat(subMounts.Keys))
         {
-            if (VsPath.Split(fs.Key).Length != 1)
-                throw new InvalidPath("Subdir filesystem mount point is not supported, only first level folders");
-            if (fs.Value == null)
-                throw new NullReferenceException("'null' filesystem? wtf?!");
+            if (VsPath.Split(mountPoint).Length != 1)
+                throw new InvalidPath("Subdir filesystem mount point is not supported, only first level folders; use the second constructor paramter");
         }
         remoteFilesystems = rootFss;
-        virtualRootFs = new ReadOnlyVirtualRoot(remoteFilesystems);
+        mountPoints = subMounts;
+        virtualRootFs = new ReadOnlyVirtualRoot(remoteFilesystems, subMounts);
     }
 
     public (string RelativePath, IVsRemoteFileSystem RemoteFs) FromPath(string path, string? auth_token)
@@ -39,28 +43,41 @@ public class BasePathFsProvider : IVsRemoteFileSystemProvider
             }
             else
             {
-                throw new NotFound();
+                if (mountPoints.TryGetValue(components[0], out BasePathFsProvider? subBasePath))
+                {
+                    return subBasePath.FromPath(VsPath.RemoveFirstDir(components), auth_token);
+                }
+                else
+                {
+                    throw new NotFound();
+                }
             }
         }
     }
 
-    private class ReadOnlyVirtualRoot : IVsRemoteFileSystem
+    private sealed class ReadOnlyVirtualRoot : IVsRemoteFileSystem
     {
         private readonly Dictionary<string, IVsRemoteFileSystem> remoteFilesystems;
+    private readonly Dictionary<string, BasePathFsProvider> mountPoints;
 
         public IVsRemoteINode RootINode
         {
             get
             {
-                long mtime = remoteFilesystems.Values.Select(fs => fs.RootINode.MTime).Max();
-                long ctime = remoteFilesystems.Values.Select(fs => fs.RootINode.CTime).Max();
+                long mtime =
+                    remoteFilesystems.Values.Select(fs => fs.RootINode.MTime).Concat(
+                    mountPoints.Values.Select(mp => mp.virtualRootFs.RootINode.MTime)).Max();
+                long ctime =
+                    remoteFilesystems.Values.Select(fs => fs.RootINode.CTime).Concat(
+                    mountPoints.Values.Select(mp => mp.virtualRootFs.RootINode.CTime)).Max();
                 return new VsRemoteINode(VsPath.ROOT, Enums.VsRemoteFileType.Directory, ctime, mtime);
             }
         }
 
-        public ReadOnlyVirtualRoot(Dictionary<string, IVsRemoteFileSystem> remoteFilesystems)
+        public ReadOnlyVirtualRoot(Dictionary<string, IVsRemoteFileSystem> remoteFilesystems, Dictionary<string, BasePathFsProvider> subMounts)
         {
             this.remoteFilesystems = remoteFilesystems;
+            this.mountPoints = subMounts;
         }
 
         public Task CreateDirectory(string path)
@@ -80,7 +97,12 @@ public class BasePathFsProvider : IVsRemoteFileSystemProvider
                 FileType : VsRemoteFileType.Directory,
                 CTime : fs.Value.RootINode.CTime,
                 MTime : fs.Value.RootINode.MTime
-            ) as IVsRemoteINode));
+            ) as IVsRemoteINode).Concat(mountPoints.Select(mp => new VsRemoteINode(
+                Name : mp.Key,
+                FileType : VsRemoteFileType.Directory,
+                CTime : mp.Value.virtualRootFs.RootINode.CTime,
+                MTime : mp.Value.virtualRootFs.RootINode.MTime
+            ))));
         }
 
         public Task<ReadOnlyMemory<byte>> ReadFile(string path)
