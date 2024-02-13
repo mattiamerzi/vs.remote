@@ -38,10 +38,13 @@ public class LocalFolderFilesystem : VsRemoteFileSystem
 
     private async Task<IEnumerable<IVsRemoteINode>> LocalListDirectory(string path)
     {
-        return await Task.Run(() =>
-            Directory.EnumerateFileSystemEntries(path)
-                .Select(fname => LocalStat(fname).GetAwaiter().GetResult())
-        );
+        IEnumerable<string> dirFiles = Directory.EnumerateFileSystemEntries(path);
+        List<IVsRemoteINode> inodes = new(dirFiles.Count());
+        foreach (var fname in dirFiles)
+        {
+            inodes.Add(await LocalStat(fname));
+        }
+        return inodes;
     }
 
     private async Task<ReadOnlyMemory<byte>> LocalReadFile(string path)
@@ -49,14 +52,16 @@ public class LocalFolderFilesystem : VsRemoteFileSystem
         return new(await File.ReadAllBytesAsync(path));
     }
 
-    private async Task LocalRemoveDirectory(string path, bool recursive)
+    private Task LocalRemoveDirectory(string path, bool recursive)
     {
-        await Task.Run(() => Directory.Delete(path, recursive));
+        Directory.Delete(path, recursive);
+        return Task.CompletedTask;
     }
 
-    private async Task LocalRenameFile(string fromPath, string toPath)
+    private Task LocalRenameFile(string fromPath, string toPath)
     {
-        await Task.Run(() => File.Move(fromPath, toPath, true));
+        File.Move(fromPath, toPath, true);
+        return Task.CompletedTask;
     }
 
     private async Task<IVsRemoteINode> LocalStat(string path)
