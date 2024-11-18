@@ -19,8 +19,8 @@ export default function init_gRPC(remoteAddress: string): VsRemoteClient | undef
         });
         const protoDescriptor: ProtoGrpcType = (grpc.loadPackageDefinition(packageDefinition) as any) as ProtoGrpcType;
         const vsremote = protoDescriptor.vsremote;
-        const options = { 'grpc.max_receive_message_length': 1024 * 1024 * 1024 * 1024}; // 1Tb, that means: if you need to set a limit, set it on the server side.
-        const vsclient:VsRemoteClient = new vsremote.VsRemote(remoteAddress, grpc.credentials.createInsecure(), options);
+        const options = { 'grpc.max_receive_message_length': 1024 * 1024 * 1024 * 1024, 'grpc.enable_retries': 0, 'grpc.max_concurrent_streams': 1024 }; // 1Tb, that means: if you need to set a limit, set it on the server side.
+        const vsclient:VsRemoteClient = new vsremote.VsRemote(remoteAddress, grpc.credentials.createSsl(), options);
 
         return vsclient;
     }

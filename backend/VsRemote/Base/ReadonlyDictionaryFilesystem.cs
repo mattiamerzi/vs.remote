@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using VsRemote.Enums;
 using VsRemote.Exceptions;
 using VsRemote.Interfaces;
@@ -11,6 +12,8 @@ namespace VsRemote.Base;
 public abstract class ReadonlyDictionaryFilesystem: VsRemoteFileSystem
 {
     protected abstract IDictionary<string, string> Data { get; }
+    protected virtual bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
+        => Data.TryGetValue(key, out value);
     private IEnumerable<IVsRemoteINode> _dataINodes
         => Data.Select(f => new VsRemoteINode(f.Key, VsRemoteFileType.File, Epoch, Epoch, f.Value.Length));
     private readonly long epoch = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
@@ -27,19 +30,9 @@ public abstract class ReadonlyDictionaryFilesystem: VsRemoteFileSystem
         => _rootINode;
 
 
-    public override Task CreateDirectory(string directoryName, IVsRemoteINode parentDir, string[] parentPath)
-    {
-        throw new PermissionDenied();
-    }
-
-    public override Task DeleteFile(IVsRemoteINode fileToDelete, IVsRemoteINode parentDir, string[] parentPath)
-    {
-        throw new PermissionDenied();
-    }
-
     public override Task<IEnumerable<IVsRemoteINode>> ListDirectory(IVsRemoteINode dir, string[] path)
     {
-        if (dir.Name == VsPath.ROOT) //"flows")
+        if (dir.Name == VsPath.ROOT)
             return Task.FromResult(_dataINodes);
         else
             throw new NotFound();
@@ -47,23 +40,13 @@ public abstract class ReadonlyDictionaryFilesystem: VsRemoteFileSystem
 
     public override Task<ReadOnlyMemory<byte>> ReadFile(IVsRemoteINode fileToRead, IVsRemoteINode parentDir, string[] parentPath)
     {
-        if (parentDir.Name == VsPath.ROOT && Data.TryGetValue(fileToRead.Name, out var flow))
+        if (parentDir.Name == VsPath.ROOT && TryGetValue(fileToRead.Name, out var data))
             return Task.FromResult(
                 new ReadOnlyMemory<byte>(
-                    Encoding.ASCII.GetBytes(flow)
+                    Encoding.ASCII.GetBytes(data)
                 )
             );
         throw new NotFound();
-    }
-
-    public override Task RemoveDirectory(IVsRemoteINode dir, string[] path, bool recursive)
-    {
-        throw new PermissionDenied();
-    }
-
-    public override Task RenameFile(IVsRemoteINode fromFile, string[] fromPath, string toName, string[] toPath)
-    {
-        throw new PermissionDenied();
     }
 
     public override Task<IVsRemoteINode> Stat(string[] path)
@@ -75,13 +58,13 @@ public abstract class ReadonlyDictionaryFilesystem: VsRemoteFileSystem
                     return Task.FromResult(_rootINode);
                 else
                 {
-                    if (Data.TryGetValue(path[0], out var flow))
+                    if (TryGetValue(path[0], out var data))
                         return Task.FromResult((IVsRemoteINode)
                             new VsRemoteINode(
                                 path[0],
                                 VsRemoteFileType.File,
                                 Epoch, Epoch,
-                                flow.Length
+                                data.Length
                             )
                         );
                 }
@@ -90,8 +73,40 @@ public abstract class ReadonlyDictionaryFilesystem: VsRemoteFileSystem
         throw new NotFound();
     }
 
+#region PermissionDenied methods
+    public override Task CreateDirectory(string directoryName, IVsRemoteINode parentDir, string[] parentPath)
+    {
+        throw new PermissionDenied();
+    }
+
+    public override Task DeleteFile(IVsRemoteINode fileToDelete, IVsRemoteINode parentDir, string[] parentPath)
+    {
+        throw new PermissionDenied();
+    }
+
     public override Task<long> WriteFile(string file2write, IVsRemoteINode parentDir, string[] parentPath, ReadOnlyMemory<byte> content)
     {
         throw new PermissionDenied();
+    }
+
+    public override Task RemoveDirectory(IVsRemoteINode dir, string[] path, bool recursive)
+    {
+        throw new PermissionDenied();
+    }
+
+    public override Task RenameFile(IVsRemoteINode fromFile, string[] fromPath, string toName, string[] toPath)
+    {
+        throw new PermissionDenied();
+    }
+#endregion
+
+    public static ReadonlyDictionaryFilesystem FromDictionary(IDictionary<string, string> files)
+        => new BasicReadOnlyDictionaryFilesystem(files);
+
+    public class BasicReadOnlyDictionaryFilesystem : ReadonlyDictionaryFilesystem
+    {
+        protected override IDictionary<string, string> Data { get; }
+        public BasicReadOnlyDictionaryFilesystem(IDictionary<string, string> data)
+            => Data = data;
     }
 }

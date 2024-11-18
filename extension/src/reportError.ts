@@ -21,10 +21,11 @@ export function reportError(err: grpc.ServiceError, uri: vscode.Uri | null) {
     const errorCode: string = metadataToString(err.metadata, 'error_code', 'E_UNKNOWN');
     const errorMessage: string = metadataToString(err.metadata, 'error_message', err.details || 'Unknown Error');
     let exception: vscode.FileSystemError | null = null;
+    let silent = false;
     if (uri != null) {
         switch (errorCode) {
             case 'E_PERM_DENIED': exception = vscode.FileSystemError.NoPermissions(uri); break;
-            case 'E_NOT_FOUND': exception = vscode.FileSystemError.FileNotFound(uri); break;
+            case 'E_NOT_FOUND': exception = vscode.FileSystemError.FileNotFound(uri); silent = true; break;
             case 'E_NOT_DIR': exception = vscode.FileSystemError.FileNotADirectory(uri); break;
             case 'E_IS_DIR': exception = vscode.FileSystemError.FileIsADirectory(uri); break;
             case 'E_ERROR':
@@ -44,7 +45,8 @@ export function reportError(err: grpc.ServiceError, uri: vscode.Uri | null) {
     } else {
         exception = new Error(errorMessage);
     }
-    vscode.window.showErrorMessage(errorMessage || errorCode);
+    if (!silent)
+        vscode.window.showErrorMessage(errorMessage || errorCode);
     return exception;
 }
 

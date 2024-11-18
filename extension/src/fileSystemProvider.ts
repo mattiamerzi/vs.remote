@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 
 import * as vscode from 'vscode';
 import { VsRemoteHost } from './settings';
@@ -16,7 +16,7 @@ export class VsRemoteFs implements vscode.FileSystemProvider {
 		const fs: VsRemoteFsProvider | undefined = this.fss.get(key);
 		if (fs) {
 			try {
-				var res = action(fs);
+				const res = action(fs);
 				console.log(`OK  onFs(${key}) = ${action.toString()} => ${res}`);
 				return res;
 			} catch (err) {

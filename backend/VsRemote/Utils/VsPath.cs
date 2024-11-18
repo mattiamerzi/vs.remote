@@ -32,6 +32,10 @@ public class VsPath
         return Join(Join(path), lastComponent);
     }
 
+    public static bool IsRoot(string[] path)
+    {
+        return path.Length == 1 && path[0] == ROOT;
+    }
     public static bool IsRoot(string path)
     {
         return path.Length == 1 && path[0] == PATH_SEPARATOR;
