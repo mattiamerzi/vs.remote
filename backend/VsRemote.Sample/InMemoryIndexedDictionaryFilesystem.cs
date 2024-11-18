@@ -38,13 +38,14 @@ public class InMemoryIndexedDictionaryFilesystem : VsRemoteFileSystem<long>
             Name: directoryName,
             FileType: VsRemoteFileType.Directory,
             CTime: DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-            MTime: DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+            MTime: DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+            ATime: DateTimeOffset.UtcNow.ToUnixTimeSeconds()
         );
         fs.AddOrUpdate(newDir.Key, newDir, (k, f) => throw new FileExists());
         return Task.CompletedTask;
     }
 
-    public override Task<long> CreateFile(string file2write, IVsRemoteINode<long> parentDir, ReadOnlyMemory<byte> content)
+    public override Task<int> CreateFile(string file2write, IVsRemoteINode<long> parentDir, ReadOnlyMemory<byte> content)
     {
         IVsRemoteINode<long> newFile = new VsRemoteINode<long>(
             Key: nextId,
@@ -53,11 +54,12 @@ public class InMemoryIndexedDictionaryFilesystem : VsRemoteFileSystem<long>
             FileType: VsRemoteFileType.File,
             CTime: DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
             MTime: DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+            ATime: DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
             Size: content.Length
         );
         fs.AddOrUpdate(newFile.Key, newFile, (k, f) => throw new FileExists());
         contents.Add(newFile.Key, content);
-        return Task.FromResult((long)content.Length);
+        return Task.FromResult(content.Length);
     }
 
     public override Task DeleteFile(IVsRemoteINode<long> fileToDelete)
@@ -134,10 +136,10 @@ public class InMemoryIndexedDictionaryFilesystem : VsRemoteFileSystem<long>
         return Task.CompletedTask;
     }
 
-    public override Task<long> RewriteFile(IVsRemoteINode<long> file2rewrite, ReadOnlyMemory<byte> content)
+    public override Task<int> RewriteFile(IVsRemoteINode<long> file2rewrite, ReadOnlyMemory<byte> content)
     {
         contents[file2rewrite.Key] = content;
-        return Task.FromResult((long)content.Length);
+        return Task.FromResult(content.Length);
     }
 
 

@@ -294,9 +294,31 @@ internal sealed class VsRemoteService : VsRemote.VsRemoteBase
         }
     }
 
+    public override async Task<ReadFileResponse> ReadFileOffset(ReadFileOffsetRequest request, ServerCallContext context)
+    {
+        logger.LogTrace("ReadFileOffset({path}, {offset}, {length})", request.Path, request.Offset, request.Length);
+        await ValidateToken(request.AuthToken);
+        try
+        {
+            var (RelativePath, RemoteFs) = remoteFsProvider.FromPath(request.Path, request.AuthToken);
+            var fileContent = await RemoteFs.ReadFileOffset(RelativePath, request.Offset, request.Length);
+            logger.LogDebug("ReadFileOffset({path}) OK, {length} bytes read", request.Path, fileContent.Length);
+            return new ReadFileResponse()
+            {
+                Content = ByteString.CopyFrom(fileContent.Span),
+                Length = fileContent.Length
+            };
+        }
+        catch(Exception ex)
+        {
+            logger.LogError("ReadFileOffset({path}) ERR: {err}", request.Path, ex.Message);
+            throw VsException.RpcFrom(ex);
+        }
+    }
+
     public override async Task<WriteFileResponse> WriteFile(WriteFileRequest request, ServerCallContext context)
     {
-        logger.LogTrace("WriteFile({path}, Create:{create}, Overwrite:{overwrite}, Length:{length})", request.Path, request.Create, request.Overwrite, request.Content.Length);
+        logger.LogTrace("WriteFile({path}, Create:{create}, Overwrite:{overwrite}, Buffer Length:{length})", request.Path, request.Create, request.Overwrite, request.Content.Length);
         await ValidateToken(request.AuthToken);
         try
         {
@@ -311,6 +333,48 @@ internal sealed class VsRemoteService : VsRemote.VsRemoteBase
         catch(Exception ex)
         {
             logger.LogError("WriteFile({path}) ERR: {err}", request.Path, ex.Message);
+            throw VsException.RpcFrom(ex);
+        }
+    }
+
+    public override async Task<WriteFileResponse> WriteFileOffset(WriteFileOffsetRequest request, ServerCallContext context)
+    {
+        logger.LogTrace("WriteFileOffset({path}, Offset:{offset}, Buffer Length:{length})", request.Path, request.Offset, request.Content.Length);
+        await ValidateToken(request.AuthToken);
+        try
+        {
+            var (RelativePath, RemoteFs) = remoteFsProvider.FromPath(request.Path, request.AuthToken);
+            var bytesWritten = await RemoteFs.WriteFileOffset(RelativePath, request.Offset, request.Content.Memory);
+            logger.LogDebug("WriteFileOffset({path}) OK, {length} bytes written", request.Path, bytesWritten);
+            return new WriteFileResponse()
+            {
+                BytesWritten = bytesWritten
+            };
+        }
+        catch(Exception ex)
+        {
+            logger.LogError("WriteFileOffset({path}) ERR: {err}", request.Path, ex.Message);
+            throw VsException.RpcFrom(ex);
+        }
+    }
+
+    public override async Task<WriteFileResponse> WriteFileAppend(WriteFileAppendRequest request, ServerCallContext context)
+    {
+        logger.LogTrace("WriteFileAppend({path}, Buffer Length:{length})", request.Path, request.Content.Length);
+        await ValidateToken(request.AuthToken);
+        try
+        {
+            var (RelativePath, RemoteFs) = remoteFsProvider.FromPath(request.Path, request.AuthToken);
+            var bytesWritten = await RemoteFs.WriteFileAppend(RelativePath, request.Content.Memory);
+            logger.LogDebug("WriteFileAppend({path}) OK, {length} bytes written", request.Path, bytesWritten);
+            return new WriteFileResponse()
+            {
+                BytesWritten = bytesWritten
+            };
+        }
+        catch(Exception ex)
+        {
+            logger.LogError("WriteFileAppend({path}) ERR: {err}", request.Path, ex.Message);
             throw VsException.RpcFrom(ex);
         }
     }

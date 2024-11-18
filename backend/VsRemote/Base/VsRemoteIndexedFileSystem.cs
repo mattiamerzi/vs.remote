@@ -26,8 +26,8 @@ public abstract class VsRemoteFileSystem<T> : IVsRemoteFileSystem where T: IEqua
     public abstract Task RenameFile(IVsRemoteINode<T> fromFile, string toName, IVsRemoteINode<T> toPath);
     public abstract Task OverwriteFile(IVsRemoteINode<T> fromFile, IVsRemoteINode<T> toFile);
 
-    public abstract Task<long> CreateFile(string file2write, IVsRemoteINode<T> parentDir, ReadOnlyMemory<byte> content);
-    public abstract Task<long> RewriteFile(IVsRemoteINode<T> file2rewrite, ReadOnlyMemory<byte> content);
+    public abstract Task<int> CreateFile(string file2write, IVsRemoteINode<T> parentDir, ReadOnlyMemory<byte> content);
+    public abstract Task<int> RewriteFile(IVsRemoteINode<T> file2rewrite, ReadOnlyMemory<byte> content);
 
     public abstract Task<IVsRemoteINode<T>> FindByName(string file, IVsRemoteINode<T> parentDir);
 
@@ -172,7 +172,7 @@ public abstract class VsRemoteFileSystem<T> : IVsRemoteFileSystem where T: IEqua
         return await GetLastChild(path_a);
     }
 
-    async Task<long> IVsRemoteFileSystem.WriteFile(string path, ReadOnlyMemory<byte> content, bool overwriteIfExists, bool createIfNotExists)
+    async Task<int> IVsRemoteFileSystem.WriteFile(string path, ReadOnlyMemory<byte> content, bool overwriteIfExists, bool createIfNotExists)
     {
         var path_a = Split(path);
         if (path_a.Length == 0)
@@ -205,6 +205,21 @@ public abstract class VsRemoteFileSystem<T> : IVsRemoteFileSystem where T: IEqua
                 }
             }
         }
+    }
+
+    Task<ReadOnlyMemory<byte>> IVsRemoteFileSystem.ReadFileOffset(string path, int offset, int length)
+    {
+        throw new NotImplementedException();
+    }
+
+    Task<int> IVsRemoteFileSystem.WriteFileOffset(string path, int offset, ReadOnlyMemory<byte> content)
+    {
+        throw new NotImplementedException();
+    }
+
+    Task<int> IVsRemoteFileSystem.WriteFileAppend(string path, ReadOnlyMemory<byte> content)
+    {
+        throw new NotImplementedException();
     }
     #endregion
 }

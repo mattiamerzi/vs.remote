@@ -13,7 +13,10 @@ service VsRemote {
   rpc DeleteFile (DeleteFileRequest) returns (DeleteFileResponse);
   rpc RenameFile (RenameFileRequest) returns (RenameFileResponse);
   rpc ReadFile (ReadFileRequest) returns (ReadFileResponse);
+  rpc ReadFileOffset (ReadFileOffsetRequest) returns (ReadFileResponse);
   rpc WriteFile (WriteFileRequest) returns (WriteFileResponse);
+  rpc WriteFileOffset (WriteFileOffsetRequest) returns (WriteFileResponse);
+  rpc WriteFileAppend (WriteFileAppendRequest) returns (WriteFileResponse);
   rpc ListCommands (ListCommandsRequest) returns (ListCommandsResponse);
   rpc ExecuteCommand (ExecuteCommandRequest) returns (ExecuteCommandResponse);
 }
@@ -204,8 +207,15 @@ message ReadFileRequest {
 }
 
 message ReadFileResponse {
-    int64 length = 1;
+    int32 length = 1;
     bytes content = 2;
+}
+
+message ReadFileOffsetRequest {
+    string auth_token = 1;
+    string path = 2;
+    int32 offset = 3;
+    int32 length = 4;
 }
 
 
@@ -220,6 +230,19 @@ message WriteFileRequest {
     bytes content = 10;
 }
 
+message WriteFileOffsetRequest {
+    string auth_token = 1;
+    string path = 2;
+    int32 offset = 3;
+    bytes content = 10;
+}
+message WriteFileAppendRequest {
+    string auth_token = 1;
+    string path = 2;
+    bytes content = 10;
+}
+
+
 message WriteFileResponse {
-    int64 bytes_written = 1;
+    int32 bytes_written = 1;
 }

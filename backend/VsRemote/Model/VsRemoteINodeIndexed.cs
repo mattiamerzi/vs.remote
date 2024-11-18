@@ -11,5 +11,6 @@ public record VsRemoteINode<T> (
     VsRemoteFileType FileType,
     long CTime,
     long MTime,
+    long ATime,
     long Size = 0
-) : VsRemoteINode(Name, FileType, CTime, MTime, Size), IVsRemoteINode<T>  where T : IEquatable<T>; 
+) : VsRemoteINode(Name, FileType, CTime, MTime, ATime, Size), IVsRemoteINode<T>  where T : IEquatable<T>; 

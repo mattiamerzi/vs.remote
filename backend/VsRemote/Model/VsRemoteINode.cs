@@ -8,5 +8,6 @@ public record VsRemoteINode (
     VsRemoteFileType FileType,
     long CTime,
     long MTime,
+    long ATime,
     long Size = 0
 ): IVsRemoteINode;
