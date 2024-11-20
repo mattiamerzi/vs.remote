@@ -316,6 +316,27 @@ internal sealed class VsRemoteService : VsRemote.VsRemoteBase
         }
     }
 
+    public override async Task<WriteFileResponse> CreateFile(CreateFileRequest request, ServerCallContext context)
+    {
+        logger.LogTrace("CreateFile({path})", request.Path);
+        await ValidateToken(request.AuthToken);
+        try
+        {
+            var (RelativePath, RemoteFs) = remoteFsProvider.FromPath(request.Path, request.AuthToken);
+            await RemoteFs.CreateFile(RelativePath);
+            logger.LogDebug("CreateFile({path}) OK", request.Path);
+            return new WriteFileResponse()
+            {
+                BytesWritten = 0
+            };
+        }
+        catch(Exception ex)
+        {
+            logger.LogError("WriteFile({path}) ERR: {err}", request.Path, ex.Message);
+            throw VsException.RpcFrom(ex);
+        }
+    }
+
     public override async Task<WriteFileResponse> WriteFile(WriteFileRequest request, ServerCallContext context)
     {
         logger.LogTrace("WriteFile({path}, Create:{create}, Overwrite:{overwrite}, Buffer Length:{length})", request.Path, request.Create, request.Overwrite, request.Content.Length);

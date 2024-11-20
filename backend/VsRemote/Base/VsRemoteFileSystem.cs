@@ -27,8 +27,11 @@ public abstract class VsRemoteFileSystem : IVsRemoteFileSystem
     public abstract Task RenameFile(IVsRemoteINode fromFile, string[] fromPath, string toName, string[] toPath);
 
     public abstract Task<IVsRemoteINode> Stat(string[] path);
+    public virtual async Task CreateFile(string file2write, IVsRemoteINode parentDir, string[] parentPath)
+        => await WriteFile(file2write, parentDir, parentPath, Array.Empty<byte>());
 
     public abstract Task<int> WriteFile(string file2write, IVsRemoteINode parentDir, string[] parentPath, ReadOnlyMemory<byte> content);
+
     public virtual async Task<int> WriteFileOffset(IVsRemoteINode inode2write, IVsRemoteINode parentDir, string[] parentPath, int offset, ReadOnlyMemory<byte> content)
     {
         ReadOnlyMemory<byte> entireFile = await ReadFile(inode2write, parentDir, parentPath);
@@ -202,6 +205,28 @@ public abstract class VsRemoteFileSystem : IVsRemoteFileSystem
             path_a = ROOT_PATH;
         }
         return await Stat(path_a);
+    }
+
+    async Task IVsRemoteFileSystem.CreateFile(string path)
+    {
+        var path_a = Split(path);
+        if (path_a.Length == 0)
+            throw new InvalidPath();
+
+        var parent = await GetParentDirectory(path_a);
+        bool exists;
+        try
+        {
+            await Stat(path_a);
+            exists = true;
+        } catch (NotFound)
+        {
+            exists = false;
+        }
+        if (!exists)
+        {
+            await CreateFile(path_a.Last(), parent.INode, parent.Path);
+        }
     }
 
     async Task<int> IVsRemoteFileSystem.WriteFile(string path, ReadOnlyMemory<byte> content, bool overwriteIfExists, bool createIfNotExists)

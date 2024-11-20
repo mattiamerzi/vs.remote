@@ -172,6 +172,26 @@ public abstract class VsRemoteFileSystem<T> : IVsRemoteFileSystem where T: IEqua
         return await GetLastChild(path_a);
     }
 
+    async Task IVsRemoteFileSystem.CreateFile(string path)
+    {
+        var path_a = Split(path);
+        if (path_a.Length == 0)
+        {
+            throw new IsADirectory(); // root IS a directory
+        }
+        else
+        {
+            var parentDir = await GetParentDirectory(path_a);
+            try
+            {
+                await GetLastChild(path_a, parentDir);
+            }
+            catch (NotFound)
+            {
+                await CreateFile(path_a.Last(), parentDir, Array.Empty<byte>());
+            }
+        }
+    }
     async Task<int> IVsRemoteFileSystem.WriteFile(string path, ReadOnlyMemory<byte> content, bool overwriteIfExists, bool createIfNotExists)
     {
         var path_a = Split(path);
@@ -182,7 +202,8 @@ public abstract class VsRemoteFileSystem<T> : IVsRemoteFileSystem where T: IEqua
         else
         {
             var parentDir = await GetParentDirectory(path_a);
-            try {
+            try
+            {
                 var file = await GetLastChild(path_a, parentDir);
                 if (overwriteIfExists)
                 {
@@ -193,7 +214,8 @@ public abstract class VsRemoteFileSystem<T> : IVsRemoteFileSystem where T: IEqua
                 {
                     throw new PermissionDenied();
                 }
-            } catch (NotFound)
+            }
+            catch (NotFound)
             {
                 if (createIfNotExists)
                 {

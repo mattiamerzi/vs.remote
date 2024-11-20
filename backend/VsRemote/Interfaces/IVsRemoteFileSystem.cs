@@ -19,7 +19,11 @@ public interface IVsRemoteFileSystem
     public Task<ReadOnlyMemory<byte>> ReadFile(string path);
     public Task<ReadOnlyMemory<byte>> ReadFileOffset(string path, int offset, int length);
 
+    public Task CreateFile(string path);
+
     public Task<int> WriteFile(string path, ReadOnlyMemory<byte> content, bool overwriteIfExists, bool createIfNotExists);
+
     public Task<int> WriteFileOffset(string path, int offset, ReadOnlyMemory<byte> content);
+
     public Task<int> WriteFileAppend(string path, ReadOnlyMemory<byte> content);
 }

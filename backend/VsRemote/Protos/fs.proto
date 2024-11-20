@@ -14,6 +14,7 @@ service VsRemote {
   rpc RenameFile (RenameFileRequest) returns (RenameFileResponse);
   rpc ReadFile (ReadFileRequest) returns (ReadFileResponse);
   rpc ReadFileOffset (ReadFileOffsetRequest) returns (ReadFileResponse);
+  rpc CreateFile (CreateFileRequest) returns (WriteFileResponse);
   rpc WriteFile (WriteFileRequest) returns (WriteFileResponse);
   rpc WriteFileOffset (WriteFileOffsetRequest) returns (WriteFileResponse);
   rpc WriteFileAppend (WriteFileAppendRequest) returns (WriteFileResponse);
@@ -53,7 +54,8 @@ message VsFsEntry {
     FileType file_type = 2;
     int64 mtime = 3;
     int64 ctime = 4;
-    int64 size = 5;
+    int64 atime = 5;
+    int64 size = 7;
 }
 
 
@@ -221,6 +223,11 @@ message ReadFileOffsetRequest {
 
 
 // Write File
+
+message CreateFileRequest {
+    string auth_token = 1;
+    string path = 2;
+}
 
 message WriteFileRequest {
     string auth_token = 1;
