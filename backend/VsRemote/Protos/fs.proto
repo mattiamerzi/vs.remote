@@ -56,6 +56,7 @@ message VsFsEntry {
     int64 ctime = 4;
     int64 atime = 5;
     int64 size = 7;
+    bool readonly = 8;
 }
 
 

@@ -20,6 +20,11 @@ public abstract class VsRemoteFileSystem<T> : IVsRemoteFileSystem where T: IEqua
         => !(await ListDirectory(dir)).Any();
 
     public abstract Task<ReadOnlyMemory<byte>> ReadFile(IVsRemoteINode<T> fileToRead);
+    public virtual async Task<ReadOnlyMemory<byte>> ReadFileOffset(IVsRemoteINode<T> fileToRead, int offset, int length)
+    {
+        ReadOnlyMemory<byte> entireFile = await ReadFile(fileToRead);
+        return entireFile.Slice(offset, length);
+    }
 
     public abstract Task RemoveDirectory(IVsRemoteINode<T> dir, bool recursive);
 
@@ -28,6 +33,27 @@ public abstract class VsRemoteFileSystem<T> : IVsRemoteFileSystem where T: IEqua
 
     public abstract Task<int> CreateFile(string file2write, IVsRemoteINode<T> parentDir, ReadOnlyMemory<byte> content);
     public abstract Task<int> RewriteFile(IVsRemoteINode<T> file2rewrite, ReadOnlyMemory<byte> content);
+    public virtual async Task<int> WriteFileOffset(IVsRemoteINode<T> inode2write, int offset, ReadOnlyMemory<byte> content)
+    {
+        ReadOnlyMemory<byte> entireFile = await ReadFile(inode2write);
+        if (offset > content.Length)
+            offset = content.Length; // ... what else?!
+        int newlen = entireFile.Length - offset + content.Length;
+        byte[] newfile = new byte[newlen];
+        entireFile[..offset].CopyTo(newfile);
+        content.Span.CopyTo(newfile.AsSpan()[offset..]);
+        return await RewriteFile(inode2write, newfile);
+    }
+
+    public virtual async Task<int> WriteFileAppend(IVsRemoteINode<T> inode2write, ReadOnlyMemory<byte> content)
+    {
+        ReadOnlyMemory<byte> entireFile = await ReadFile(inode2write);
+        int newlen = entireFile.Length + content.Length;
+        byte[] newfile = new byte[newlen];
+        entireFile.CopyTo(newfile);
+        content.Span.CopyTo(newfile.AsSpan().Slice(entireFile.Length));
+        return await RewriteFile(inode2write, newfile);
+    }
 
     public abstract Task<IVsRemoteINode<T>> FindByName(string file, IVsRemoteINode<T> parentDir);
 
@@ -110,6 +136,21 @@ public abstract class VsRemoteFileSystem<T> : IVsRemoteFileSystem where T: IEqua
             var file = await GetLastChild(path_a);
             file.AssertNotDirectory();
             return await ReadFile(file);
+        }
+    }
+
+    async Task<ReadOnlyMemory<byte>> IVsRemoteFileSystem.ReadFileOffset(string path, int offset, int length)
+    {
+        var path_a = Split(path);
+        if (path_a.Length == 0)
+        {
+            throw new IsADirectory(); // root IS a directory
+        }
+        else
+        {
+            var file = await GetLastChild(path_a);
+            file.AssertNotDirectory();
+            return await ReadFileOffset(file, offset, length);
         }
     }
 
@@ -229,19 +270,50 @@ public abstract class VsRemoteFileSystem<T> : IVsRemoteFileSystem where T: IEqua
         }
     }
 
-    Task<ReadOnlyMemory<byte>> IVsRemoteFileSystem.ReadFileOffset(string path, int offset, int length)
+    async Task<int> IVsRemoteFileSystem.WriteFileOffset(string path, int offset, ReadOnlyMemory<byte> content)
     {
-        throw new NotImplementedException();
+        var path_a = Split(path);
+        if (path_a.Length == 0)
+        {
+            throw new IsADirectory(); // root IS a directory
+        }
+        else
+        {
+            var parentDir = await GetParentDirectory(path_a);
+            try
+            {
+                var file = await GetLastChild(path_a, parentDir);
+                file.AssertNotDirectory();
+                return await WriteFileOffset(file, offset, content);
+            }
+            catch (NotFound)
+            {
+                throw;
+            }
+        }
     }
 
-    Task<int> IVsRemoteFileSystem.WriteFileOffset(string path, int offset, ReadOnlyMemory<byte> content)
+    async Task<int> IVsRemoteFileSystem.WriteFileAppend(string path, ReadOnlyMemory<byte> content)
     {
-        throw new NotImplementedException();
-    }
-
-    Task<int> IVsRemoteFileSystem.WriteFileAppend(string path, ReadOnlyMemory<byte> content)
-    {
-        throw new NotImplementedException();
+        var path_a = Split(path);
+        if (path_a.Length == 0)
+        {
+            throw new IsADirectory(); // root IS a directory
+        }
+        else
+        {
+            var parentDir = await GetParentDirectory(path_a);
+            try
+            {
+                var file = await GetLastChild(path_a, parentDir);
+                file.AssertNotDirectory();
+                return await WriteFileAppend(file, content);
+            }
+            catch (NotFound)
+            {
+                throw;
+            }
+        }
     }
     #endregion
 }

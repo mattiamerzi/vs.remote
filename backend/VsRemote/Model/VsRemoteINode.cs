@@ -6,6 +6,7 @@ namespace VsRemote.Model;
 public record VsRemoteINode (
     string Name,
     VsRemoteFileType FileType,
+    bool Readonly,
     long CTime,
     long MTime,
     long ATime,

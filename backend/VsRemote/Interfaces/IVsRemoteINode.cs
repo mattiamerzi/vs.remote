@@ -10,4 +10,5 @@ public interface IVsRemoteINode
     long MTime { get; }
     long ATime { get; }
     long Size { get; }
+    bool Readonly { get; }
 }

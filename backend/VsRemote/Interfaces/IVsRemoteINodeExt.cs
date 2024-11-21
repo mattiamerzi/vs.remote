@@ -13,7 +13,8 @@ public static class IVsRemoteINodeExt
             Name = remoteInode.Name,
             Ctime = remoteInode.CTime,
             Mtime = remoteInode.MTime,
-            Atime = remoteInode.ATime
+            Atime = remoteInode.ATime,
+            Readonly = remoteInode.Readonly
         };
     }
 

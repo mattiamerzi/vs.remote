@@ -72,6 +72,7 @@ public class LocalFolderFilesystem : VsRemoteFileSystem
                 new VsRemoteINode(
                     Path.GetFileName(path),
                     Directory.Exists(path) ? VsRemoteFileType.Directory : VsRemoteFileType.File,
+                    Readonly: (File.GetAttributes(path) | FileAttributes.ReadOnly) != 0,
                     ((DateTimeOffset)File.GetCreationTimeUtc(path)).ToUnixTimeSeconds(),
                     ((DateTimeOffset)File.GetLastWriteTimeUtc(path)).ToUnixTimeSeconds(),
                     ((DateTimeOffset)File.GetLastAccessTimeUtc(path)).ToUnixTimeSeconds()

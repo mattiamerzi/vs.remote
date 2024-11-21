@@ -7,4 +7,4 @@ namespace VsRemote.Model;
 public record VsRemoteRootINode(
     long CTime,
     long MTime
-) : VsRemoteINode(VsPath.ROOT, VsRemoteFileType.Directory, CTime, MTime, 0);
+) : VsRemoteINode(VsPath.ROOT, VsRemoteFileType.Directory, false, CTime, MTime, 0);

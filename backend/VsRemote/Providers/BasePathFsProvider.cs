@@ -80,7 +80,7 @@ public class BasePathFsProvider : IVsRemoteFileSystemProvider
                 long atime =
                     remoteFilesystems.Values.Select(fs => fs.RootINode.ATime).Concat(
                     mountPoints.Values.Select(mp => mp.virtualRootFs.RootINode.ATime)).Max();
-                return new VsRemoteINode(VsPath.ROOT, VsRemoteFileType.Directory, ctime, mtime, atime);
+                return new VsRemoteINode(VsPath.ROOT, VsRemoteFileType.Directory, Readonly: true, ctime, mtime, atime);
             }
         }
 
@@ -97,12 +97,14 @@ public class BasePathFsProvider : IVsRemoteFileSystemProvider
                 remoteFilesystems.Select(fs => new VsRemoteINode(
                 Name: fs.Key,
                 FileType: VsRemoteFileType.Directory,
+                Readonly: false,
                 CTime: fs.Value.RootINode.CTime,
                 MTime: fs.Value.RootINode.MTime,
                 ATime: fs.Value.RootINode.ATime
             ) as IVsRemoteINode).Concat(mountPoints.Select(mp => new VsRemoteINode(
                 Name: mp.Key,
                 FileType: VsRemoteFileType.Directory,
+                Readonly: false,
                 CTime: mp.Value.virtualRootFs.RootINode.CTime,
                 MTime: mp.Value.virtualRootFs.RootINode.ATime,
                 ATime: mp.Value.virtualRootFs.RootINode.MTime

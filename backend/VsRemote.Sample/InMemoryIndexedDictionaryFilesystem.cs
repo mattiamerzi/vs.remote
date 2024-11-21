@@ -39,7 +39,8 @@ public class InMemoryIndexedDictionaryFilesystem : VsRemoteFileSystem<long>
             FileType: VsRemoteFileType.Directory,
             CTime: DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
             MTime: DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-            ATime: DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+            ATime: DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+            Readonly: false
         );
         fs.AddOrUpdate(newDir.Key, newDir, (k, f) => throw new FileExists());
         return Task.CompletedTask;
@@ -55,6 +56,7 @@ public class InMemoryIndexedDictionaryFilesystem : VsRemoteFileSystem<long>
             CTime: DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
             MTime: DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
             ATime: DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+            Readonly: false,
             Size: content.Length
         );
         fs.AddOrUpdate(newFile.Key, newFile, (k, f) => throw new FileExists());
