@@ -20,7 +20,7 @@ internal sealed class VsRemoteService : VsRemote.VsRemoteBase
 
     public override async Task<ListCommandsResponse> ListCommands(ListCommandsRequest request, ServerCallContext context)
     {
-        logger.LogTrace("ListCommands()");
+        logger.LogDebug("ListCommands()");
         await ValidateToken(request.AuthToken);
         try
         {
@@ -64,7 +64,7 @@ internal sealed class VsRemoteService : VsRemote.VsRemoteBase
 
     public override async Task<ExecuteCommandResponse> ExecuteCommand(ExecuteCommandRequest request, ServerCallContext context)
     {
-        logger.LogTrace("ExecuteCommand({cmd})", request.Command);
+        logger.LogDebug("ExecuteCommand({cmd})", request.Command);
         await ValidateToken(request.AuthToken);
         try
         {
@@ -296,7 +296,7 @@ internal sealed class VsRemoteService : VsRemote.VsRemoteBase
 
     public override async Task<ReadFileResponse> ReadFileOffset(ReadFileOffsetRequest request, ServerCallContext context)
     {
-        logger.LogTrace("ReadFileOffset({path}, {offset}, {length})", request.Path, request.Offset, request.Length);
+        logger.LogDebug("ReadFileOffset({path}, {offset}, {length})", request.Path, request.Offset, request.Length);
         await ValidateToken(request.AuthToken);
         try
         {
@@ -339,7 +339,7 @@ internal sealed class VsRemoteService : VsRemote.VsRemoteBase
 
     public override async Task<WriteFileResponse> WriteFile(WriteFileRequest request, ServerCallContext context)
     {
-        logger.LogTrace("WriteFile({path}, Create:{create}, Overwrite:{overwrite}, Buffer Length:{length})", request.Path, request.Create, request.Overwrite, request.Content.Length);
+        logger.LogDebug("WriteFile({path}, Create:{create}, Overwrite:{overwrite}, Buffer Length:{length})", request.Path, request.Create, request.Overwrite, request.Content.Length);
         await ValidateToken(request.AuthToken);
         try
         {
@@ -360,7 +360,7 @@ internal sealed class VsRemoteService : VsRemote.VsRemoteBase
 
     public override async Task<WriteFileResponse> WriteFileOffset(WriteFileOffsetRequest request, ServerCallContext context)
     {
-        logger.LogTrace("WriteFileOffset({path}, Offset:{offset}, Buffer Length:{length})", request.Path, request.Offset, request.Content.Length);
+        logger.LogDebug("WriteFileOffset({path}, Offset:{offset}, Buffer Length:{length})", request.Path, request.Offset, request.Content.Length);
         await ValidateToken(request.AuthToken);
         try
         {

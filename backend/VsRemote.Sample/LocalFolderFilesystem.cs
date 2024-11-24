@@ -72,10 +72,11 @@ public class LocalFolderFilesystem : VsRemoteFileSystem
                 new VsRemoteINode(
                     Path.GetFileName(path),
                     Directory.Exists(path) ? VsRemoteFileType.Directory : VsRemoteFileType.File,
-                    Readonly: (File.GetAttributes(path) | FileAttributes.ReadOnly) != 0,
+                    Readonly: (File.GetAttributes(path) & FileAttributes.ReadOnly) != 0,
                     ((DateTimeOffset)File.GetCreationTimeUtc(path)).ToUnixTimeSeconds(),
                     ((DateTimeOffset)File.GetLastWriteTimeUtc(path)).ToUnixTimeSeconds(),
-                    ((DateTimeOffset)File.GetLastAccessTimeUtc(path)).ToUnixTimeSeconds()
+                    ((DateTimeOffset)File.GetLastAccessTimeUtc(path)).ToUnixTimeSeconds(),
+                    Size: File.Exists(path) ? new System.IO.FileInfo(path).Length : 0
             ));
         }
         else
@@ -122,7 +123,7 @@ public class LocalFolderFilesystem : VsRemoteFileSystem
 
     public override Task RemoveDirectory(IVsRemoteINode dir, string[] path, bool recursive)
     {
-        return LocalRemoveDirectory(LocalPath(VsPath.Join(path, dir.Name)), recursive);
+        return LocalRemoveDirectory(LocalPath(VsPath.Join(path)), recursive);
     }
 
     public override Task RenameFile(IVsRemoteINode fromFile, string[] fromPath, string toName, string[] toPath)

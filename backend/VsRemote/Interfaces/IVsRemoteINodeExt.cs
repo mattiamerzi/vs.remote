@@ -11,6 +11,7 @@ public static class IVsRemoteINodeExt
         {
             FileType = remoteInode.FileType.ToProtoBuf(),
             Name = remoteInode.Name,
+            Size = remoteInode.Size,
             Ctime = remoteInode.CTime,
             Mtime = remoteInode.MTime,
             Atime = remoteInode.ATime,

@@ -23,7 +23,7 @@ public abstract class VsRemoteFileSystem<T> : IVsRemoteFileSystem where T: IEqua
     public virtual async Task<ReadOnlyMemory<byte>> ReadFileOffset(IVsRemoteINode<T> fileToRead, int offset, int length)
     {
         ReadOnlyMemory<byte> entireFile = await ReadFile(fileToRead);
-        return entireFile.Slice(offset, length);
+        return entireFile.Slice(offset, Math.Min(length, entireFile.Length));
     }
 
     public abstract Task RemoveDirectory(IVsRemoteINode<T> dir, bool recursive);
@@ -38,7 +38,7 @@ public abstract class VsRemoteFileSystem<T> : IVsRemoteFileSystem where T: IEqua
         ReadOnlyMemory<byte> entireFile = await ReadFile(inode2write);
         if (offset > content.Length)
             offset = content.Length; // ... what else?!
-        int newlen = entireFile.Length - offset + content.Length;
+        int newlen = offset + content.Length;
         byte[] newfile = new byte[newlen];
         entireFile[..offset].CopyTo(newfile);
         content.Span.CopyTo(newfile.AsSpan()[offset..]);

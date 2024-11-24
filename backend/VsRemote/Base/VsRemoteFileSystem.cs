@@ -19,7 +19,7 @@ public abstract class VsRemoteFileSystem : IVsRemoteFileSystem
     public virtual async Task<ReadOnlyMemory<byte>> ReadFileOffset(IVsRemoteINode fileToRead, IVsRemoteINode parentDir, string[] parentPath, int offset, int length)
     {
         ReadOnlyMemory<byte> entireFile = await ReadFile(fileToRead, parentDir, parentPath);
-        return entireFile.Slice(offset, length);
+        return entireFile.Slice(offset, Math.Min(entireFile.Length - offset, length));
     }
 
     public abstract Task RemoveDirectory(IVsRemoteINode dir, string[] path, bool recursive);
@@ -35,11 +35,11 @@ public abstract class VsRemoteFileSystem : IVsRemoteFileSystem
     public virtual async Task<int> WriteFileOffset(IVsRemoteINode inode2write, IVsRemoteINode parentDir, string[] parentPath, int offset, ReadOnlyMemory<byte> content)
     {
         ReadOnlyMemory<byte> entireFile = await ReadFile(inode2write, parentDir, parentPath);
-        if (offset > content.Length)
-            offset = content.Length; // ... what else?!
-        int newlen = entireFile.Length - offset + content.Length;
+        if (offset > entireFile.Length)
+            offset = entireFile.Length; // ... what else?!
+        int newlen = Math.Max(offset + content.Length, entireFile.Length);
         byte[] newfile = new byte[newlen];
-        entireFile[..offset].CopyTo(newfile);
+        entireFile.CopyTo(newfile);
         content.Span.CopyTo(newfile.AsSpan()[offset..]);
         return await WriteFile(inode2write.Name, parentDir, parentPath, newfile);
     }
