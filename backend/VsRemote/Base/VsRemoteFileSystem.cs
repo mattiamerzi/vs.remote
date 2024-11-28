@@ -176,7 +176,7 @@ public abstract class VsRemoteFileSystem : IVsRemoteFileSystem
         if (toPath_a.Length == 0)
             throw new InvalidPath();
         var fromInode = await Stat(fromPath_a);
-        var fromContainer = await GetParentDirectory(toPath_a);
+        var fromContainer = await GetParentDirectory(fromPath_a);
         var toContainer = await GetParentDirectory(toPath_a);
         bool exists;
         try

@@ -147,7 +147,7 @@ internal sealed class VsRemoteService : VsRemote.VsRemoteBase
         {
             var (RelativePath, RemoteFs) = remoteFsProvider.FromPath(request.Path, request.AuthToken);
             var remoteInode = await RemoteFs.Stat(RelativePath);
-            logger.LogDebug("Stat({path}) OK", request.Path);
+            logger.LogTrace("Stat({path}) OK", request.Path);
             return new StatResponse()
             {
                 FileInfo = remoteInode.ToGrpc()

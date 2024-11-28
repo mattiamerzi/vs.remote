@@ -13,14 +13,17 @@ public class SampleAuthKeyAuthentication : VsRemoteBaseAuthenticator
         { "HelloWorld" },
         { "0000000000" }
     };
-    private static readonly ConcurrentDictionary<string, TokenStoreEntry> tokens = new();
+    private static readonly List<TokenStoreEntry> tokens = new();
 
     public override async Task<VsRemoteAuthenticateResult> Authenticate(string auth_key)
     {
         if (keys.Contains(auth_key))
         {
             string tmp = Guid.NewGuid().ToString();
-            tokens.TryAdd(tmp, new(tmp));
+            lock (tokens)
+            {
+                tokens.Add(new(tmp));
+            }
             return VsRemoteAuthenticateResult.Authenticated(tmp);
         }
         else
@@ -31,24 +34,26 @@ public class SampleAuthKeyAuthentication : VsRemoteBaseAuthenticator
 
     public override async Task<VsRemoteAuthenticationStatus> ValidateToken(string auth_token)
     {
-        foreach (var item in tokens.Where(t => t.Value.Expired).ToList())
+        lock (tokens)
         {
-            tokens.TryRemove(item);
+            tokens.RemoveAll(t => t.Expired);
+            try
+            {
+                tokens.First(t => t.AuthToken == auth_token).ExpireTime = DateTime.UtcNow;
+                return VsRemoteAuthenticationStatus.AUTHENTICATED;
+            }
+            catch
+            {
+                return VsRemoteAuthenticationStatus.EXPIRED;
+            }
         }
-        if (tokens.Where(t => t.Value.AuthToken == auth_token).Any())
-            return VsRemoteAuthenticationStatus.AUTHENTICATED;
-        else
-            return VsRemoteAuthenticationStatus.EXPIRED;
     }
 
-    private class TokenStoreEntry
+    private class TokenStoreEntry(string authToken)
     {
-        public string AuthToken { get; init; }
+        public string AuthToken { get; init; } = authToken;
         public DateTime ExpireTime { get; set; } = DateTime.UtcNow;
-        public TokenStoreEntry(string authToken)
-        {
-            AuthToken = authToken;
-        }
+
         public bool Expired => (DateTime.UtcNow - ExpireTime).TotalMinutes > TokenExpireTimeMinutes;
     }
 

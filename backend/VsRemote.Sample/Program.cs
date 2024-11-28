@@ -17,16 +17,16 @@ builder.WebHost.ConfigureKestrel(options =>
 //IVsRemoteFileSystemProvider fsProvider = new RootFsProvider(new InMemoryIndexedDictionaryFilesystem());
 
 // sample local-folder filesystem
-IVsRemoteFileSystemProvider fsProvider = new RootFsProvider(new LocalFolderFilesystem(@"C:\temp\bug\"));
+//IVsRemoteFileSystemProvider fsProvider = new RootFsProvider(new LocalFolderFilesystem(@"C:\temp\bug\"));
 
 // sample base-path filesystem that maps the "idx" and "temp" folders to two different filesystem implementations
-/*
-IVsRemoteFileSystemProvider fsProvider = new BasePathFsProvider(new()
+
+IVsRemoteFileSystemProvider fsProvider = new BasePathFsProvider(new Dictionary<string, IVsRemoteFileSystem>()
         {
             { "idx", new InMemoryIndexedDictionaryFilesystem() },
-            { "temp", new LocalFolderFilesystem(@"C:\temp\") }
+            { "temp", new LocalFolderFilesystem(@"C:\temp\bug\") }
         });
-*/
+
 
 /*
 // simple, commandless VsRemote configuration

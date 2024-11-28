@@ -7,6 +7,7 @@ using VsRemote.Interfaces;
 using VsRemote.Model;
 using VsRemote.Enums;
 using System.Text;
+using System.Xml.Linq;
 
 namespace VsRemote.Sample;
 
@@ -85,18 +86,29 @@ public class InMemoryIndexedDictionaryFilesystem : VsRemoteFileSystem<long>
         return Task.FromResult(fs.Values.Where(f => f.Parent == dir.Key));
     }
 
-    public override Task OverwriteFile(IVsRemoteINode<long> fromFile, IVsRemoteINode<long> toFile)
+    public override Task<IVsRemoteINode<long>> RenameFile(IVsRemoteINode<long> file2rename, string toName)
     {
-        var newFromFile = (fromFile as VsRemoteINode<long>)! with { Parent = toFile.Parent };
-        if (fs.TryUpdate(newFromFile.Key, newFromFile, fromFile))
+        if (file2rename.Name != toName)
         {
-            fs.Remove(toFile.Key, out _);
+            var newFromFile = (file2rename as VsRemoteINode<long>)! with { Name = toName };
+            if (!fs.TryUpdate(file2rename.Key, newFromFile, file2rename))
+            {
+                throw new NotFound();
+            }
+            return Task.FromResult((IVsRemoteINode<long>)newFromFile);
         }
         else
+            return Task.FromResult(file2rename);
+    }
+
+    public override Task<IVsRemoteINode<long>> MoveFile(IVsRemoteINode<long> fromFile, IVsRemoteINode<long> toPath)
+    {
+        var newFromFile = (fromFile as VsRemoteINode<long>)! with { Parent = toPath.Key };
+        if (!fs.TryUpdate(fromFile.Key, newFromFile, fromFile))
         {
             throw new NotFound();
         }
-        return Task.CompletedTask;
+        return Task.FromResult((IVsRemoteINode<long>)newFromFile);
     }
 
     public override Task<ReadOnlyMemory<byte>> ReadFile(IVsRemoteINode<long> fileToRead)
@@ -128,19 +140,10 @@ public class InMemoryIndexedDictionaryFilesystem : VsRemoteFileSystem<long>
         }
     }
 
-    public override Task RenameFile(IVsRemoteINode<long> fromFile, string toName, IVsRemoteINode<long> toPath)
-    {
-        var newFromFile = (fromFile as VsRemoteINode<long>)! with { Name = toName, Parent = toPath.Parent };
-        if (!fs.TryUpdate(newFromFile.Key, newFromFile, fromFile))
-        {
-            throw new NotFound();
-        }
-        return Task.CompletedTask;
-    }
-
     public override Task<int> RewriteFile(IVsRemoteINode<long> file2rewrite, ReadOnlyMemory<byte> content)
     {
         contents[file2rewrite.Key] = content;
+        fs[file2rewrite.Key] = (fs[file2rewrite.Key] as VsRemoteINode<long>)!with { Size = content.Length };
         return Task.FromResult(content.Length);
     }
 

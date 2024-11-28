@@ -23,24 +23,25 @@ public abstract class VsRemoteFileSystem<T> : IVsRemoteFileSystem where T: IEqua
     public virtual async Task<ReadOnlyMemory<byte>> ReadFileOffset(IVsRemoteINode<T> fileToRead, int offset, int length)
     {
         ReadOnlyMemory<byte> entireFile = await ReadFile(fileToRead);
-        return entireFile.Slice(offset, Math.Min(length, entireFile.Length));
+        return entireFile.Slice(offset, Math.Min(length, entireFile.Length - offset));
     }
 
     public abstract Task RemoveDirectory(IVsRemoteINode<T> dir, bool recursive);
 
-    public abstract Task RenameFile(IVsRemoteINode<T> fromFile, string toName, IVsRemoteINode<T> toPath);
-    public abstract Task OverwriteFile(IVsRemoteINode<T> fromFile, IVsRemoteINode<T> toFile);
+    public abstract Task<IVsRemoteINode<T>> MoveFile(IVsRemoteINode<T> fromFile, IVsRemoteINode<T> toPath);
+    public abstract Task<IVsRemoteINode<T>> RenameFile(IVsRemoteINode<T> file2rename, string toName);
+    //public abstract Task OverwriteFile(IVsRemoteINode<T> fromFile, IVsRemoteINode<T> toFile);
 
     public abstract Task<int> CreateFile(string file2write, IVsRemoteINode<T> parentDir, ReadOnlyMemory<byte> content);
     public abstract Task<int> RewriteFile(IVsRemoteINode<T> file2rewrite, ReadOnlyMemory<byte> content);
     public virtual async Task<int> WriteFileOffset(IVsRemoteINode<T> inode2write, int offset, ReadOnlyMemory<byte> content)
     {
         ReadOnlyMemory<byte> entireFile = await ReadFile(inode2write);
-        if (offset > content.Length)
-            offset = content.Length; // ... what else?!
-        int newlen = offset + content.Length;
+        if (offset > entireFile.Length)
+            offset = entireFile.Length; // ... what else?!
+        int newlen = Math.Max(offset + content.Length, entireFile.Length);
         byte[] newfile = new byte[newlen];
-        entireFile[..offset].CopyTo(newfile);
+        entireFile.CopyTo(newfile);
         content.Span.CopyTo(newfile.AsSpan()[offset..]);
         return await RewriteFile(inode2write, newfile);
     }
@@ -57,25 +58,20 @@ public abstract class VsRemoteFileSystem<T> : IVsRemoteFileSystem where T: IEqua
 
     public abstract Task<IVsRemoteINode<T>> FindByName(string file, IVsRemoteINode<T> parentDir);
 
-    private Task<IVsRemoteINode<T>> GetLastChild(string[] path_a)
-        => GetLastChild(path_a, RootINode);
-
-    private async Task<IVsRemoteINode<T>> GetLastChild(string[] path_a, IVsRemoteINode<T> tmpFile)
+    private async Task<IVsRemoteINode<T>> GetLastChild(string[] path_a)
     {
-        foreach (var path_el in path_a)
-        {
-            tmpFile.AssertDirectory();
-            var tmpInode = await FindByName(path_el, tmpFile);
-            tmpFile = tmpInode;
-        }
-        return tmpFile;
+        if (path_a.Length == 0)
+            return RootINode;
+        return await FindByName(path_a.Last(), await GetContainingDirectory(path_a));
+    }
+    private async Task<IVsRemoteINode<T>> GetLastChild(string[] path_a, IVsRemoteINode<T> containingDir)
+    {
+        return await FindByName(path_a.Last(), containingDir);
     }
 
-    private Task<IVsRemoteINode<T>> GetParentDirectory(string[] path_a)
-        => GetParentDirectory(path_a, RootINode);
-
-    private async Task<IVsRemoteINode<T>> GetParentDirectory(string[] path_a, IVsRemoteINode<T> tmpDir)
+    private async Task<IVsRemoteINode<T>> GetContainingDirectory(string[] path_a)
     {
+        IVsRemoteINode<T> tmpDir = RootINode;
         foreach (var path_el in path_a.SkipLastA())
         {
             var tmpInode = await FindByName(path_el, tmpDir);
@@ -93,8 +89,16 @@ public abstract class VsRemoteFileSystem<T> : IVsRemoteFileSystem where T: IEqua
         if (path_a.Length == 0)
             throw new InvalidPath();
 
-        var parentINode = await GetParentDirectory(path_a);
-        await CreateDirectory(path_a.Last(), parentINode);
+        var parentINode = await GetContainingDirectory(path_a);
+        try
+        {
+            FindByName(path_a.Last(), parentINode);
+            throw new FileExists();
+        }
+        catch (NotFound)
+        {
+            await CreateDirectory(path_a.Last(), parentINode);
+        }
     }
 
     async Task IVsRemoteFileSystem.DeleteFile(string path)
@@ -180,31 +184,35 @@ public abstract class VsRemoteFileSystem<T> : IVsRemoteFileSystem where T: IEqua
         var toPath_a = Split(fromPath);
         if (toPath_a.Length == 0)
             throw new InvalidPath();
-        var minCommonPath = new List<string>(Math.Max(fromPath_a.Length, toPath_a.Length));
-        for (int i = 0; fromPath_a[i] == toPath_a[i]; i++)
-        {
-            minCommonPath.Add(fromPath_a[i]);
-        }
-        var commonPathINode = await GetLastChild(minCommonPath.ToArray()); // array empty => root inode
-        var fromInode = await GetLastChild(fromPath_a, commonPathINode);
-        var toContainer = await GetParentDirectory(toPath_a, commonPathINode);
+        var fromContainer = await GetContainingDirectory(toPath_a);
+        var fromInode = await GetLastChild(fromPath_a, fromContainer);
+        var toContainer = await GetContainingDirectory(toPath_a);
 
-        try
+        IVsRemoteINode<T> destInode;
+        if (fromContainer != toContainer)
         {
-            var toINode = await GetLastChild(toPath_a, toContainer);
-            toINode.AssertNotDirectory();
-            if (overwrite)
+            try
             {
-                await OverwriteFile(fromInode, toINode);
+                var toExisting = await GetLastChild(toPath_a, toContainer);
+                if (overwrite)
+                {
+                    await DeleteFile(toExisting);
+                }
+                else
+                {
+                    throw new PermissionDenied();
+                }
             }
-            else
+            catch (NotFound)
             {
-                throw new PermissionDenied();
             }
-        } catch (NotFound)
-        {
-            await RenameFile(fromInode, toPath_a.Last(), toContainer);
+            destInode = await MoveFile(fromInode, toContainer);
         }
+        else
+        {
+            destInode = fromInode;
+        }
+        await RenameFile(destInode, toPath_a.Last());
     }
 
     async Task<IVsRemoteINode> IVsRemoteFileSystem.Stat(string path)
@@ -222,10 +230,11 @@ public abstract class VsRemoteFileSystem<T> : IVsRemoteFileSystem where T: IEqua
         }
         else
         {
-            var parentDir = await GetParentDirectory(path_a);
+            var parentDir = await GetContainingDirectory(path_a);
             try
             {
                 await GetLastChild(path_a, parentDir);
+                throw new FileExists();
             }
             catch (NotFound)
             {
@@ -242,7 +251,7 @@ public abstract class VsRemoteFileSystem<T> : IVsRemoteFileSystem where T: IEqua
         }
         else
         {
-            var parentDir = await GetParentDirectory(path_a);
+            var parentDir = await GetContainingDirectory(path_a);
             try
             {
                 var file = await GetLastChild(path_a, parentDir);
@@ -279,7 +288,7 @@ public abstract class VsRemoteFileSystem<T> : IVsRemoteFileSystem where T: IEqua
         }
         else
         {
-            var parentDir = await GetParentDirectory(path_a);
+            var parentDir = await GetContainingDirectory(path_a);
             try
             {
                 var file = await GetLastChild(path_a, parentDir);
@@ -302,7 +311,7 @@ public abstract class VsRemoteFileSystem<T> : IVsRemoteFileSystem where T: IEqua
         }
         else
         {
-            var parentDir = await GetParentDirectory(path_a);
+            var parentDir = await GetContainingDirectory(path_a);
             try
             {
                 var file = await GetLastChild(path_a, parentDir);
