@@ -14,9 +14,9 @@
     <RepositoryType>git</RepositoryType>
     <PackageOutputPath>bin\nuget</PackageOutputPath>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Copyright>© 2023 Mattia Merzi</Copyright>
+    <Copyright>© 2025 Mattia Merzi</Copyright>
     <ApplicationIcon>vsremote_icon.ico</ApplicationIcon>
-    <Version>0.0.1-alpha</Version>
+    <Version>0.0.3-alpha</Version>
   </PropertyGroup>
 
   <ItemGroup>
