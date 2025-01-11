@@ -72,8 +72,11 @@ public class LocalFolderFilesystem : VsRemoteFileSystem
                 new VsRemoteINode(
                     Path.GetFileName(path),
                     Directory.Exists(path) ? VsRemoteFileType.Directory : VsRemoteFileType.File,
+                    Readonly: (File.GetAttributes(path) & FileAttributes.ReadOnly) != 0,
                     ((DateTimeOffset)File.GetCreationTimeUtc(path)).ToUnixTimeSeconds(),
-                    ((DateTimeOffset)File.GetLastWriteTime(path)).ToUnixTimeSeconds()
+                    ((DateTimeOffset)File.GetLastWriteTimeUtc(path)).ToUnixTimeSeconds(),
+                    ((DateTimeOffset)File.GetLastAccessTimeUtc(path)).ToUnixTimeSeconds(),
+                    Size: File.Exists(path) ? new System.IO.FileInfo(path).Length : 0
             ));
         }
         else
@@ -82,7 +85,7 @@ public class LocalFolderFilesystem : VsRemoteFileSystem
         }
     }
 
-    private async Task<long> LocalWriteFile(string path, ReadOnlyMemory<byte> content)
+    private async Task<int> LocalWriteFile(string path, ReadOnlyMemory<byte> content)
     {
         var stream = File.OpenWrite(path);
         stream.Seek(0, SeekOrigin.Begin);
@@ -120,7 +123,7 @@ public class LocalFolderFilesystem : VsRemoteFileSystem
 
     public override Task RemoveDirectory(IVsRemoteINode dir, string[] path, bool recursive)
     {
-        return LocalRemoveDirectory(LocalPath(VsPath.Join(path, dir.Name)), recursive);
+        return LocalRemoveDirectory(LocalPath(VsPath.Join(path)), recursive);
     }
 
     public override Task RenameFile(IVsRemoteINode fromFile, string[] fromPath, string toName, string[] toPath)
@@ -136,7 +139,7 @@ public class LocalFolderFilesystem : VsRemoteFileSystem
         return LocalStat(LocalPath(VsPath.Join(path)));
     }
 
-    public override Task<long> WriteFile(string file2write, IVsRemoteINode parentDir, string[] parentPath, ReadOnlyMemory<byte> content)
+    public override Task<int> WriteFile(string file2write, IVsRemoteINode parentDir, string[] parentPath, ReadOnlyMemory<byte> content)
     {
         return LocalWriteFile(LocalPath(VsPath.Join(parentPath, file2write)), content);
     }

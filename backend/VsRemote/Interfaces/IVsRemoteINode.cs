@@ -8,5 +8,7 @@ public interface IVsRemoteINode
     VsRemoteFileType FileType { get; }
     long CTime { get; }
     long MTime { get; }
+    long ATime { get; }
     long Size { get; }
+    bool Readonly { get; }
 }

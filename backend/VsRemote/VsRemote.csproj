@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
@@ -14,9 +14,9 @@
     <RepositoryType>git</RepositoryType>
     <PackageOutputPath>bin\nuget</PackageOutputPath>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Copyright>© 2023 Mattia Merzi</Copyright>
+    <Copyright>© 2025 Mattia Merzi</Copyright>
     <ApplicationIcon>vsremote_icon.ico</ApplicationIcon>
-    <Version>0.0.1-alpha</Version>
+    <Version>0.0.3-alpha</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -31,17 +31,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Google.Protobuf" Version="3.21.12" />
-    <PackageReference Include="Grpc.AspNetCore.Server" Version="2.51.0" />
-    <PackageReference Include="Grpc.AspNetCore.Server.Reflection" Version="2.51.0" />
-    <PackageReference Include="Grpc.Tools" Version="2.51.0">
+    <PackageReference Include="Google.Protobuf" Version="3.28.3" />
+    <PackageReference Include="Grpc.AspNetCore.Server" Version="2.66.0" />
+    <PackageReference Include="Grpc.AspNetCore.Server.Reflection" Version="2.66.0" />
+    <PackageReference Include="Grpc.Net.ClientFactory" Version="2.66.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.67.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="Protos\fs.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\fs.proto" GrpcServices="Both" />
   </ItemGroup>
 
 </Project>

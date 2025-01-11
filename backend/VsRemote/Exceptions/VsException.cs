@@ -1,4 +1,5 @@
 ﻿using Grpc.Core;
+using System.Runtime.CompilerServices;
 using VsRemote.Model.Auth;
 
 namespace VsRemote.Exceptions;
@@ -16,7 +17,10 @@ public abstract class VsException: Exception
         {
             { "error_code", ErrorCode },
             { "error_message", Message }
-        });
+        })
+        {
+            HResult = ErrorCode.GetHashCode()
+        };
     }
 
     public static RpcException RpcFrom(Exception ex)
@@ -46,4 +50,12 @@ public abstract class VsException: Exception
             { "error_message", message ?? "Authentication error" }
         });
     }
+
+}
+
+public static class RpcExceptionExt
+{
+    public static string VsErrorCode(this RpcException ex)
+        => ex.Trailers?.Get("error_code")?.Value ?? ServerError.ERROR_CODE;
+
 }

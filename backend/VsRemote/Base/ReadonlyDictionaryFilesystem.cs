@@ -15,14 +15,14 @@ public abstract class ReadonlyDictionaryFilesystem: VsRemoteFileSystem
     protected virtual bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
         => Data.TryGetValue(key, out value);
     private IEnumerable<IVsRemoteINode> _dataINodes
-        => Data.Select(f => new VsRemoteINode(f.Key, VsRemoteFileType.File, Epoch, Epoch, f.Value.Length));
+        => Data.Select(f => new VsRemoteINode(f.Key, VsRemoteFileType.File, Readonly: true, Epoch, Epoch, Epoch, f.Value.Length) as IVsRemoteINode);
     private readonly long epoch = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
     protected virtual long Epoch => epoch;
     private readonly IVsRemoteINode _rootINode;
 
     protected ReadonlyDictionaryFilesystem()
     {
-        _rootINode = new VsRemoteINode(VsPath.ROOT, VsRemoteFileType.Directory, Epoch, Epoch);
+        _rootINode = new VsRemoteINode(VsPath.ROOT, VsRemoteFileType.Directory, Readonly: true, Epoch, Epoch, Epoch);
 
     }
 
@@ -63,6 +63,7 @@ public abstract class ReadonlyDictionaryFilesystem: VsRemoteFileSystem
                             new VsRemoteINode(
                                 path[0],
                                 VsRemoteFileType.File,
+                                Readonly: true,
                                 Epoch, Epoch,
                                 data.Length
                             )
@@ -84,7 +85,7 @@ public abstract class ReadonlyDictionaryFilesystem: VsRemoteFileSystem
         throw new PermissionDenied();
     }
 
-    public override Task<long> WriteFile(string file2write, IVsRemoteINode parentDir, string[] parentPath, ReadOnlyMemory<byte> content)
+    public override Task<int> WriteFile(string file2write, IVsRemoteINode parentDir, string[] parentPath, ReadOnlyMemory<byte> content)
     {
         throw new PermissionDenied();
     }

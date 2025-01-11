@@ -16,14 +16,43 @@ public abstract class VsRemoteFileSystem : IVsRemoteFileSystem
     public abstract Task<IEnumerable<IVsRemoteINode>> ListDirectory(IVsRemoteINode dir, string[] path);
 
     public abstract Task<ReadOnlyMemory<byte>> ReadFile(IVsRemoteINode fileToRead, IVsRemoteINode parentDir, string[] parentPath);
+    public virtual async Task<ReadOnlyMemory<byte>> ReadFileOffset(IVsRemoteINode fileToRead, IVsRemoteINode parentDir, string[] parentPath, int offset, int length)
+    {
+        ReadOnlyMemory<byte> entireFile = await ReadFile(fileToRead, parentDir, parentPath);
+        return entireFile.Slice(offset, Math.Min(entireFile.Length - offset, length));
+    }
 
     public abstract Task RemoveDirectory(IVsRemoteINode dir, string[] path, bool recursive);
 
     public abstract Task RenameFile(IVsRemoteINode fromFile, string[] fromPath, string toName, string[] toPath);
 
     public abstract Task<IVsRemoteINode> Stat(string[] path);
+    public virtual async Task CreateFile(string file2write, IVsRemoteINode parentDir, string[] parentPath)
+        => await WriteFile(file2write, parentDir, parentPath, Array.Empty<byte>());
 
-    public abstract Task<long> WriteFile(string file2write, IVsRemoteINode parentDir, string[] parentPath, ReadOnlyMemory<byte> content);
+    public abstract Task<int> WriteFile(string file2write, IVsRemoteINode parentDir, string[] parentPath, ReadOnlyMemory<byte> content);
+
+    public virtual async Task<int> WriteFileOffset(IVsRemoteINode inode2write, IVsRemoteINode parentDir, string[] parentPath, int offset, ReadOnlyMemory<byte> content)
+    {
+        ReadOnlyMemory<byte> entireFile = await ReadFile(inode2write, parentDir, parentPath);
+        if (offset > entireFile.Length)
+            offset = entireFile.Length; // ... what else?!
+        int newlen = Math.Max(offset + content.Length, entireFile.Length);
+        byte[] newfile = new byte[newlen];
+        entireFile.CopyTo(newfile);
+        content.Span.CopyTo(newfile.AsSpan()[offset..]);
+        return await WriteFile(inode2write.Name, parentDir, parentPath, newfile);
+    }
+
+    public virtual async Task<int> WriteFileAppend(IVsRemoteINode inode2write, IVsRemoteINode parentDir, string[] parentPath, ReadOnlyMemory<byte> content)
+    {
+        ReadOnlyMemory<byte> entireFile = await ReadFile(inode2write, parentDir, parentPath);
+        int newlen = entireFile.Length + content.Length;
+        byte[] newfile = new byte[newlen];
+        entireFile.CopyTo(newfile);
+        content.Span.CopyTo(newfile.AsSpan().Slice(entireFile.Length));
+        return await WriteFile(inode2write.Name, parentDir, parentPath, newfile);
+    }
 
 
     private async Task<(IVsRemoteINode INode, string[] Path)> GetParent(string[] path_a)
@@ -103,6 +132,23 @@ public abstract class VsRemoteFileSystem : IVsRemoteFileSystem
         }
     }
 
+    async Task<ReadOnlyMemory<byte>> IVsRemoteFileSystem.ReadFileOffset(string path, int offset, int length)
+    {
+        var path_a = Split(path);
+        if (path_a.Length == 0)
+        {
+            throw new IsADirectory(); // root IS a directory
+        }
+        else
+        {
+            var file = await Stat(path_a);
+            file.AssertNotDirectory();
+            var containingDir = await GetParentDirectory(path_a);
+            return await ReadFileOffset(file, containingDir.INode, containingDir.Path, offset, length);
+        }
+    }
+
+
     async Task IVsRemoteFileSystem.RemoveDirectory(string path, bool recursive)
     {
         var path_a = Split(path);
@@ -130,7 +176,7 @@ public abstract class VsRemoteFileSystem : IVsRemoteFileSystem
         if (toPath_a.Length == 0)
             throw new InvalidPath();
         var fromInode = await Stat(fromPath_a);
-        var fromContainer = await GetParentDirectory(toPath_a);
+        var fromContainer = await GetParentDirectory(fromPath_a);
         var toContainer = await GetParentDirectory(toPath_a);
         bool exists;
         try
@@ -161,7 +207,29 @@ public abstract class VsRemoteFileSystem : IVsRemoteFileSystem
         return await Stat(path_a);
     }
 
-    async Task<long> IVsRemoteFileSystem.WriteFile(string path, ReadOnlyMemory<byte> content, bool overwriteIfExists, bool createIfNotExists)
+    async Task IVsRemoteFileSystem.CreateFile(string path)
+    {
+        var path_a = Split(path);
+        if (path_a.Length == 0)
+            throw new InvalidPath();
+
+        var parent = await GetParentDirectory(path_a);
+        bool exists;
+        try
+        {
+            await Stat(path_a);
+            exists = true;
+        } catch (NotFound)
+        {
+            exists = false;
+        }
+        if (!exists)
+        {
+            await CreateFile(path_a.Last(), parent.INode, parent.Path);
+        }
+    }
+
+    async Task<int> IVsRemoteFileSystem.WriteFile(string path, ReadOnlyMemory<byte> content, bool overwriteIfExists, bool createIfNotExists)
     {
         var path_a = Split(path);
         if (path_a.Length == 0)
@@ -183,8 +251,30 @@ public abstract class VsRemoteFileSystem : IVsRemoteFileSystem
         }
         else
         {
-            throw new PermissionDenied();
+            throw new NotFound();
         }
+    }
+
+    async Task<int> IVsRemoteFileSystem.WriteFileOffset(string path, int offset, ReadOnlyMemory<byte> content)
+    {
+        var path_a = Split(path);
+        if (path_a.Length == 0)
+            throw new InvalidPath();
+
+        var parent = await GetParentDirectory(path_a);
+        IVsRemoteINode inode2write = await ((IVsRemoteFileSystem)this).Stat(path);
+        return await WriteFileOffset(inode2write, parent.INode, parent.Path, offset, content);
+    }
+
+    async Task<int> IVsRemoteFileSystem.WriteFileAppend(string path, ReadOnlyMemory<byte> content)
+    {
+        var path_a = Split(path);
+        if (path_a.Length == 0)
+            throw new InvalidPath();
+
+        var parent = await GetParentDirectory(path_a);
+        IVsRemoteINode inode2write = await ((IVsRemoteFileSystem)this).Stat(path);
+        return await WriteFileAppend(inode2write, parent.INode, parent.Path, content);
     }
     #endregion
 }

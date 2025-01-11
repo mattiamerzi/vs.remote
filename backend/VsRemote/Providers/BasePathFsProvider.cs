@@ -77,7 +77,10 @@ public class BasePathFsProvider : IVsRemoteFileSystemProvider
                 long ctime =
                     remoteFilesystems.Values.Select(fs => fs.RootINode.CTime).Concat(
                     mountPoints.Values.Select(mp => mp.virtualRootFs.RootINode.CTime)).Max();
-                return new VsRemoteINode(VsPath.ROOT, VsRemoteFileType.Directory, ctime, mtime);
+                long atime =
+                    remoteFilesystems.Values.Select(fs => fs.RootINode.ATime).Concat(
+                    mountPoints.Values.Select(mp => mp.virtualRootFs.RootINode.ATime)).Max();
+                return new VsRemoteINode(VsPath.ROOT, VsRemoteFileType.Directory, Readonly: true, ctime, mtime, atime);
             }
         }
 
@@ -94,13 +97,17 @@ public class BasePathFsProvider : IVsRemoteFileSystemProvider
                 remoteFilesystems.Select(fs => new VsRemoteINode(
                 Name: fs.Key,
                 FileType: VsRemoteFileType.Directory,
+                Readonly: false,
                 CTime: fs.Value.RootINode.CTime,
-                MTime: fs.Value.RootINode.MTime
+                MTime: fs.Value.RootINode.MTime,
+                ATime: fs.Value.RootINode.ATime
             ) as IVsRemoteINode).Concat(mountPoints.Select(mp => new VsRemoteINode(
                 Name: mp.Key,
                 FileType: VsRemoteFileType.Directory,
+                Readonly: false,
                 CTime: mp.Value.virtualRootFs.RootINode.CTime,
-                MTime: mp.Value.virtualRootFs.RootINode.MTime
+                MTime: mp.Value.virtualRootFs.RootINode.ATime,
+                ATime: mp.Value.virtualRootFs.RootINode.MTime
             ) as IVsRemoteINode).Concat(rootFiles.ListDirectory(dir, VsPath.ROOT_PATH).GetAwaiter().GetResult())));
         }
 
@@ -119,7 +126,6 @@ public class BasePathFsProvider : IVsRemoteFileSystemProvider
             }
         }
 
-
         #region PermissionDenied methods
         public override Task CreateDirectory(string directoryName, IVsRemoteINode parentDir, string[] parentPath)
         {
@@ -131,7 +137,7 @@ public class BasePathFsProvider : IVsRemoteFileSystemProvider
             throw new PermissionDenied();
         }
 
-        public override Task<long> WriteFile(string file2write, IVsRemoteINode parentDir, string[] parentPath, ReadOnlyMemory<byte> content)
+        public override Task<int> WriteFile(string file2write, IVsRemoteINode parentDir, string[] parentPath, ReadOnlyMemory<byte> content)
         {
             throw new PermissionDenied();
         }
@@ -147,96 +153,5 @@ public class BasePathFsProvider : IVsRemoteFileSystemProvider
         }
 #endregion
 
-    }
-
-
-    private sealed class xReadOnlyVirtualRoot : IVsRemoteFileSystem
-    {
-        private readonly Dictionary<string, IVsRemoteFileSystem> remoteFilesystems;
-        private readonly Dictionary<string, BasePathFsProvider> mountPoints;
-        private readonly ReadonlyDictionaryFilesystem rootFiles;
-
-        public IVsRemoteINode RootINode
-        {
-            get
-            {
-                long mtime =
-                    remoteFilesystems.Values.Select(fs => fs.RootINode.MTime).Concat(
-                    mountPoints.Values.Select(mp => mp.virtualRootFs.RootINode.MTime)).Max();
-                long ctime =
-                    remoteFilesystems.Values.Select(fs => fs.RootINode.CTime).Concat(
-                    mountPoints.Values.Select(mp => mp.virtualRootFs.RootINode.CTime)).Max();
-                return new VsRemoteINode(VsPath.ROOT, Enums.VsRemoteFileType.Directory, ctime, mtime);
-            }
-        }
-
-        public xReadOnlyVirtualRoot(Dictionary<string, IVsRemoteFileSystem> remoteFilesystems, Dictionary<string, BasePathFsProvider> subMounts, ReadonlyDictionaryFilesystem rootFiles)
-        {
-            this.remoteFilesystems = remoteFilesystems;
-            this.mountPoints = subMounts;
-            this.rootFiles = rootFiles;
-        }
-
-        public Task CreateDirectory(string path)
-        {
-            throw new PermissionDenied();
-        }
-
-        public Task DeleteFile(string path)
-        {
-            throw new PermissionDenied();
-        }
-
-        public async Task<IEnumerable<IVsRemoteINode>> ListDirectory(string path)
-        {
-            return remoteFilesystems.Select(fs => new VsRemoteINode(
-                Name: fs.Key,
-                FileType: VsRemoteFileType.Directory,
-                CTime: fs.Value.RootINode.CTime,
-                MTime: fs.Value.RootINode.MTime
-            ) as IVsRemoteINode).Concat(mountPoints.Select(mp => new VsRemoteINode(
-                Name: mp.Key,
-                FileType: VsRemoteFileType.Directory,
-                CTime: mp.Value.virtualRootFs.RootINode.CTime,
-                MTime: mp.Value.virtualRootFs.RootINode.MTime
-            ) as IVsRemoteINode).Concat(await rootFiles.ListDirectory(rootFiles.RootINode, VsPath.ROOT_PATH)));
-        }
-
-        public async Task<ReadOnlyMemory<byte>> ReadFile(string path)
-        {
-            return await rootFiles.ReadFile(new VsRemoteINode(
-                Name: path,
-                FileType: VsRemoteFileType.Directory,
-                CTime: rootFiles.RootINode.CTime,
-                MTime: rootFiles.RootINode.MTime
-                ), rootFiles.RootINode, VsPath.ROOT_PATH);
-        }
-
-        public Task RemoveDirectory(string path, bool recursive)
-        {
-            throw new PermissionDenied();
-        }
-
-        public Task RenameFile(string fromPath, string toPath, bool overwrite)
-        {
-            throw new PermissionDenied();
-        }
-
-        public async Task<IVsRemoteINode> Stat(string path)
-        {
-            if (VsPath.IsRoot(path))
-            {
-                return RootINode;
-            }
-            else
-            {
-                return await rootFiles.Stat(VsPath.Split(path));
-            }
-        }
-
-        public Task<long> WriteFile(string path, ReadOnlyMemory<byte> content, bool overwriteIfExists, bool createIfNotExists)
-        {
-            throw new PermissionDenied();
-        }
     }
 }

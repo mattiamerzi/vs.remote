@@ -10,4 +10,4 @@ public record VsRemoteRootINode<T> (
     long CTime,
     long MTime,
     T? Parent = default
-) : VsRemoteINode<T>(Key, Parent, VsPath.ROOT, VsRemoteFileType.Directory, CTime, MTime, 0L), IVsRemoteINode<T>  where T : IEquatable<T>; 
+) : VsRemoteINode<T>(Key, Parent, VsPath.ROOT, VsRemoteFileType.Directory, Readonly: false, CTime, MTime, 0L), IVsRemoteINode<T>  where T : IEquatable<T>; 

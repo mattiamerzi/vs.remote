@@ -2,7 +2,8 @@
 
 public class IsADirectory: VsException
 {
-    public override string ErrorCode => "E_IS_DIR";
+    public const string ERROR_CODE = "E_IS_DIR";
+    public override string ErrorCode => ERROR_CODE;
 
     public IsADirectory() : base("Path is a directory (and it shouldn't)") { }
 

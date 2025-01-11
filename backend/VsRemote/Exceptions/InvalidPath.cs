@@ -2,7 +2,8 @@
 
 public class InvalidPath : VsException
 {
-    public override string ErrorCode => "E_INVALID_PATH";
+    public const string ERROR_CODE = "E_INVALID_PATH";
+    public override string ErrorCode => ERROR_CODE;
 
     public InvalidPath() : base("Invalid path") { }
     public InvalidPath(string message) : base(message) { }

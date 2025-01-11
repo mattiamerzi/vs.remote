@@ -55,6 +55,10 @@ public class VsPath
         {
             throw new InvalidPath();
         }
+        if (path.Length == 1)
+        {
+            return ROOT;
+        }
         return Join(path.SkipA());
     }
 
