@@ -24,7 +24,7 @@ builder.WebHost.ConfigureKestrel(options =>
 IVsRemoteFileSystemProvider fsProvider = new BasePathFsProvider(new Dictionary<string, IVsRemoteFileSystem>()
         {
             { "idx", new InMemoryIndexedDictionaryFilesystem() },
-            { "temp", new LocalFolderFilesystem(@"C:\temp\bug\") }
+            { "temp", new OptimizedLocalFolderFilesystem(@"C:\temp\") }
         });
 
 

@@ -15,7 +15,7 @@ public class SampleAuthKeyAuthentication : VsRemoteBaseAuthenticator
     };
     private static readonly List<TokenStoreEntry> tokens = new();
 
-    public override async Task<VsRemoteAuthenticateResult> Authenticate(string auth_key)
+    public override Task<VsRemoteAuthenticateResult> Authenticate(string auth_key)
     {
         if (keys.Contains(auth_key))
         {
@@ -24,15 +24,15 @@ public class SampleAuthKeyAuthentication : VsRemoteBaseAuthenticator
             {
                 tokens.Add(new(tmp));
             }
-            return VsRemoteAuthenticateResult.Authenticated(tmp);
+            return Task.FromResult(VsRemoteAuthenticateResult.Authenticated(tmp));
         }
         else
         {
-            return VsRemoteAuthenticateResult.InvalidAuthKey;
+            return Task.FromResult(VsRemoteAuthenticateResult.InvalidAuthKey);
         }
     }
 
-    public override async Task<VsRemoteAuthenticationStatus> ValidateToken(string auth_token)
+    public override Task<VsRemoteAuthenticationStatus> ValidateToken(string auth_token)
     {
         lock (tokens)
         {
@@ -40,11 +40,11 @@ public class SampleAuthKeyAuthentication : VsRemoteBaseAuthenticator
             try
             {
                 tokens.First(t => t.AuthToken == auth_token).ExpireTime = DateTime.UtcNow;
-                return VsRemoteAuthenticationStatus.AUTHENTICATED;
+                return Task.FromResult(VsRemoteAuthenticationStatus.AUTHENTICATED);
             }
             catch
             {
-                return VsRemoteAuthenticationStatus.EXPIRED;
+                return Task.FromResult(VsRemoteAuthenticationStatus.EXPIRED);
             }
         }
     }

@@ -92,7 +92,7 @@ public abstract class VsRemoteFileSystem<T> : IVsRemoteFileSystem where T: IEqua
         var parentINode = await GetContainingDirectory(path_a);
         try
         {
-            FindByName(path_a.Last(), parentINode);
+            await FindByName(path_a.Last(), parentINode);
             throw new FileExists();
         }
         catch (NotFound)
