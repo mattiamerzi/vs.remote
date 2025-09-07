@@ -74,40 +74,29 @@ public class VsRemoteStreamingClient: VsRemoteAuthenticatedBaseClient
 
     #region Synchronous Methods
 
-    public CreateDirectoryResponse CreateDirectory(CreateDirectoryRequest request)
+    public override CreateDirectoryResponse CreateDirectory(CreateDirectoryRequest request, Metadata headers = null, DateTime? deadline = null, CancellationToken cancellationToken = default)
         => CreateDirectoryAsync(request).GetAwaiter().GetResult();
-
-    public StatResponse Stat(StatRequest request)
+    public override StatResponse Stat(StatRequest request, Metadata headers = null, DateTime? deadline = null, CancellationToken cancellationToken = default)
         => StatAsync(request).GetAwaiter().GetResult();
-
-    public ListDirectoryResponse ListDirectory(ListDirectoryRequest request)
+    public override ListDirectoryResponse ListDirectory(ListDirectoryRequest request, Metadata headers = null, DateTime? deadline = null, CancellationToken cancellationToken = default)
         => ListDirectoryAsync(request).GetAwaiter().GetResult();
-
-    public RemoveDirectoryResponse RemoveDirectory(RemoveDirectoryRequest request)
+    public override RemoveDirectoryResponse RemoveDirectory(RemoveDirectoryRequest request, Metadata headers = null, DateTime? deadline = null, CancellationToken cancellationToken = default)
         => RemoveDirectoryAsync(request).GetAwaiter().GetResult();
-
-    public DeleteFileResponse DeleteFile(DeleteFileRequest request)
+    public override DeleteFileResponse DeleteFile(DeleteFileRequest request, Metadata headers = null, DateTime? deadline = null, CancellationToken cancellationToken = default)
         => DeleteFileAsync(request).GetAwaiter().GetResult();
-
-    public RenameFileResponse RenameFile(RenameFileRequest request)
+    public override RenameFileResponse RenameFile(RenameFileRequest request, Metadata headers = null, DateTime? deadline = null, CancellationToken cancellationToken = default)
         => RenameFileAsync(request).GetAwaiter().GetResult();
-
-    public ReadFileResponse ReadFile(ReadFileRequest request)
+    public override ReadFileResponse ReadFile(ReadFileRequest request, Metadata headers = null, DateTime? deadline = null, CancellationToken cancellationToken = default)
         => ReadFileAsync(request).GetAwaiter().GetResult();
-
-    public ReadFileResponse ReadFileOffset(ReadFileOffsetRequest request)
+    public override ReadFileResponse ReadFileOffset(ReadFileOffsetRequest request, Metadata headers = null, DateTime? deadline = null, CancellationToken cancellationToken = default)
         => ReadFileOffsetAsync(request).GetAwaiter().GetResult();
-
-    public WriteFileResponse CreateFile(CreateFileRequest request)
+    public override WriteFileResponse CreateFile(CreateFileRequest request, Metadata headers = null, DateTime? deadline = null, CancellationToken cancellationToken = default)
         => CreateFileAsync(request).GetAwaiter().GetResult();
-
-    public WriteFileResponse WriteFile(WriteFileRequest request)
+    public override WriteFileResponse WriteFile(WriteFileRequest request, Metadata headers = null, DateTime? deadline = null, CancellationToken cancellationToken = default)
         => WriteFileAsync(request).GetAwaiter().GetResult();
-
-    public WriteFileResponse WriteFileOffset(WriteFileOffsetRequest request)
+    public override WriteFileResponse WriteFileOffset(WriteFileOffsetRequest request, Metadata headers = null, DateTime? deadline = null, CancellationToken cancellationToken = default)
         => WriteFileOffsetAsync(request).GetAwaiter().GetResult();
-
-    public WriteFileResponse WriteFileAppend(WriteFileAppendRequest request)
+    public override WriteFileResponse WriteFileAppend(WriteFileAppendRequest request, Metadata headers = null, DateTime? deadline = null, CancellationToken cancellationToken = default)
         => WriteFileAppendAsync(request).GetAwaiter().GetResult();
 
     #endregion
