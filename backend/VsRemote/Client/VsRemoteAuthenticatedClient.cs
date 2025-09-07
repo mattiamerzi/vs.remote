@@ -4,29 +4,8 @@ using static VsRemote.VsRemote;
 
 namespace VsRemote.Client;
 
-public class VsRemoteAuthenticatedClient : VsRemoteClient
+public class VsRemoteAuthenticatedClient(GrpcChannel channel, string username, string password) : VsRemoteAuthenticatedBaseClient(channel, username, password)
 {
-    private readonly string authToken;
-
-    public VsRemoteAuthenticatedClient(GrpcChannel channel, string username, string password) : base(channel)
-    {
-        var res = Login(new LoginRequest() { Username = username, Password = password });
-        if (res.AuthResult == AuthResult.Authenticated)
-        {
-            authToken = res.AuthToken;
-        }
-        else
-        {
-            throw new VsRemoteAuthenticationException(res.FailureMessage);
-        }
-    }
-
-    private T WithAuthToken<T>(T request) where T : IAuthenticatedRequest
-    {
-        request.AuthToken = authToken;
-        return request;
-    }
-
     #region sync methods
 
     public CreateDirectoryResponse CreateDirectory(CreateDirectoryRequest request)
@@ -91,9 +70,4 @@ public class VsRemoteAuthenticatedClient : VsRemoteClient
         => await base.WriteFileOffsetAsync(WithAuthToken(request));
 
     #endregion
-}
-
-[Serializable]
-public class VsRemoteAuthenticationException(string message) : Exception(message)
-{
 }
