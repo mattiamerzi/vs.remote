@@ -115,40 +115,40 @@ public class VsRemoteStreamingClient: VsRemoteAuthenticatedBaseClient
     #region Asynchronous Methods
 
     public async Task<CreateDirectoryResponse> CreateDirectoryAsync(CreateDirectoryRequest request)
-        => (await SendRequest(new DataRequest { CreateDirectory = request })).CreateDirectoryRes;
+        => (await SendRequest(new DataRequest { CreateDirectory = WithAuthToken(request) })).CreateDirectoryRes;
 
     public async Task<StatResponse> StatAsync(StatRequest request)
-        => (await SendRequest(new DataRequest { Stat = request })).StatRes;
+        => (await SendRequest(new DataRequest { Stat = WithAuthToken(request) })).StatRes;
 
     public async Task<ListDirectoryResponse> ListDirectoryAsync(ListDirectoryRequest request)
-        => (await SendRequest(new DataRequest { ListDirectory = request })).ListDirectoryRes;
+        => (await SendRequest(new DataRequest { ListDirectory = WithAuthToken(request) })).ListDirectoryRes;
 
     public async Task<RemoveDirectoryResponse> RemoveDirectoryAsync(RemoveDirectoryRequest request)
-        => (await SendRequest(new DataRequest { RemoveDirectory = request })).RemoveDirectoryRes;
+        => (await SendRequest(new DataRequest { RemoveDirectory = WithAuthToken(request) })).RemoveDirectoryRes;
 
     public async Task<DeleteFileResponse> DeleteFileAsync(DeleteFileRequest request)
-        => (await SendRequest(new DataRequest { DeleteFile = request })).DeleteFileRes;
+        => (await SendRequest(new DataRequest { DeleteFile = WithAuthToken(request) })).DeleteFileRes;
 
     public async Task<RenameFileResponse> RenameFileAsync(RenameFileRequest request)
-        => (await SendRequest(new DataRequest { RenameFile = request })).RenameFileRes;
+        => (await SendRequest(new DataRequest { RenameFile = WithAuthToken(request) })).RenameFileRes;
 
     public async Task<ReadFileResponse> ReadFileAsync(ReadFileRequest request)
-        => (await SendRequest(new DataRequest { ReadFile = request })).ReadFileRes;
+        => (await SendRequest(new DataRequest { ReadFile = WithAuthToken(request) })).ReadFileRes;
 
     public async Task<ReadFileResponse> ReadFileOffsetAsync(ReadFileOffsetRequest request)
-        => (await SendRequest(new DataRequest { ReadFileOffset = request })).ReadFileRes;
+        => (await SendRequest(new DataRequest { ReadFileOffset = WithAuthToken(request) })).ReadFileRes;
 
     public async Task<WriteFileResponse> CreateFileAsync(CreateFileRequest request)
-        => (await SendRequest(new DataRequest { CreateFile = request })).WriteFileRes;
+        => (await SendRequest(new DataRequest { CreateFile = WithAuthToken(request) })).WriteFileRes;
 
     public async Task<WriteFileResponse> WriteFileAsync(WriteFileRequest request)
-        => (await SendRequest(new DataRequest { WriteFile = request })).WriteFileRes;
+        => (await SendRequest(new DataRequest { WriteFile = WithAuthToken(request) })).WriteFileRes;
 
     public async Task<WriteFileResponse> WriteFileOffsetAsync(WriteFileOffsetRequest request)
-        => (await SendRequest(new DataRequest { WriteFileOffset = request })).WriteFileRes;
+        => (await SendRequest(new DataRequest { WriteFileOffset = WithAuthToken(request) })).WriteFileRes;
 
     public async Task<WriteFileResponse> WriteFileAppendAsync(WriteFileAppendRequest request)
-        => (await SendRequest(new DataRequest { WriteFileAppend = request })).WriteFileRes;
+        => (await SendRequest(new DataRequest { WriteFileAppend = WithAuthToken(request) })).WriteFileRes;
 
     #endregion
 }
