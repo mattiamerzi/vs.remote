@@ -5,18 +5,16 @@ using static VsRemote.VsRemote;
 
 namespace VsRemote.Client;
 
-public class VsRemoteStreamingClient
+public class VsRemoteStreamingClient: VsRemoteClient
 {
-    private readonly VsRemoteClient client;
     private readonly AsyncDuplexStreamingCall<DataRequest, DataResponse> streamFSstream;
     private readonly ConcurrentDictionary<int, TaskCompletionSource<DataResponse>> _pending = new();
     private int _nextRequestId = 0;
     private readonly Task _readerTask;
 
-    public VsRemoteStreamingClient(GrpcChannel channel)
+    public VsRemoteStreamingClient(GrpcChannel channel): base(channel)
     {
-        client = new VsRemoteClient(channel);
-        streamFSstream = client.StreamFS();
+        streamFSstream = this.StreamFS();
         _readerTask = Task.Run(ReadResponsesAsync);
     }
 
