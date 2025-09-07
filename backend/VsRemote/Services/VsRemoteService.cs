@@ -1,6 +1,7 @@
 using Google.Protobuf;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
+using System.Linq.Expressions;
 using VsRemote.Exceptions;
 using VsRemote.Interfaces;
 using VsRemote.Model.Auth;
@@ -22,24 +23,38 @@ internal sealed class VsRemoteService : VsRemote.VsRemoteBase
     {
         await foreach (var req in requestStream.ReadAllAsync())
         {
-            DataResponse resp = req.PayloadCase switch
+            try
             {
-                DataRequest.PayloadOneofCase.Stat => new DataResponse() { RequestId = req.RequestId, StatRes = await Stat(req.Stat, context) },
-                DataRequest.PayloadOneofCase.ListDirectory => new DataResponse() { RequestId = req.RequestId, ListDirectoryRes = await ListDirectory(req.ListDirectory, context) },
-                DataRequest.PayloadOneofCase.CreateDirectory => new DataResponse() { RequestId = req.RequestId, CreateDirectoryRes = await CreateDirectory(req.CreateDirectory, context) },
-                DataRequest.PayloadOneofCase.RemoveDirectory => new DataResponse() { RequestId = req.RequestId, RemoveDirectoryRes = await RemoveDirectory(req.RemoveDirectory, context) },
-                DataRequest.PayloadOneofCase.DeleteFile => new DataResponse() { RequestId = req.RequestId, DeleteFileRes = await DeleteFile(req.DeleteFile, context) },
-                DataRequest.PayloadOneofCase.RenameFile => new DataResponse() { RequestId = req.RequestId, RenameFileRes = await RenameFile(req.RenameFile, context) },
-                DataRequest.PayloadOneofCase.ReadFile => new DataResponse() { RequestId = req.RequestId, ReadFileRes = await ReadFile(req.ReadFile, context) },
-                DataRequest.PayloadOneofCase.ReadFileOffset => new DataResponse() { RequestId = req.RequestId, ReadFileRes = await ReadFileOffset(req.ReadFileOffset, context) },
-                DataRequest.PayloadOneofCase.CreateFile => new DataResponse() { RequestId = req.RequestId, WriteFileRes = await CreateFile(req.CreateFile, context) },
-                DataRequest.PayloadOneofCase.WriteFile => new DataResponse() { RequestId = req.RequestId, WriteFileRes = await WriteFile(req.WriteFile, context) },
-                DataRequest.PayloadOneofCase.WriteFileOffset => new DataResponse() { RequestId = req.RequestId, WriteFileRes = await WriteFileOffset(req.WriteFileOffset, context) },
-                DataRequest.PayloadOneofCase.WriteFileAppend => new DataResponse() { RequestId = req.RequestId, WriteFileRes = await WriteFileAppend(req.WriteFileAppend, context) },
-                _ => throw new Exception("unknown request type") // this should never happen
-            };
-
-            await responseStream.WriteAsync(resp);
+                DataResponse resp = req.PayloadCase switch
+                {
+                    DataRequest.PayloadOneofCase.Stat => new DataResponse() { RequestId = req.RequestId, StatRes = await Stat(req.Stat, context) },
+                    DataRequest.PayloadOneofCase.ListDirectory => new DataResponse() { RequestId = req.RequestId, ListDirectoryRes = await ListDirectory(req.ListDirectory, context) },
+                    DataRequest.PayloadOneofCase.CreateDirectory => new DataResponse() { RequestId = req.RequestId, CreateDirectoryRes = await CreateDirectory(req.CreateDirectory, context) },
+                    DataRequest.PayloadOneofCase.RemoveDirectory => new DataResponse() { RequestId = req.RequestId, RemoveDirectoryRes = await RemoveDirectory(req.RemoveDirectory, context) },
+                    DataRequest.PayloadOneofCase.DeleteFile => new DataResponse() { RequestId = req.RequestId, DeleteFileRes = await DeleteFile(req.DeleteFile, context) },
+                    DataRequest.PayloadOneofCase.RenameFile => new DataResponse() { RequestId = req.RequestId, RenameFileRes = await RenameFile(req.RenameFile, context) },
+                    DataRequest.PayloadOneofCase.ReadFile => new DataResponse() { RequestId = req.RequestId, ReadFileRes = await ReadFile(req.ReadFile, context) },
+                    DataRequest.PayloadOneofCase.ReadFileOffset => new DataResponse() { RequestId = req.RequestId, ReadFileRes = await ReadFileOffset(req.ReadFileOffset, context) },
+                    DataRequest.PayloadOneofCase.CreateFile => new DataResponse() { RequestId = req.RequestId, WriteFileRes = await CreateFile(req.CreateFile, context) },
+                    DataRequest.PayloadOneofCase.WriteFile => new DataResponse() { RequestId = req.RequestId, WriteFileRes = await WriteFile(req.WriteFile, context) },
+                    DataRequest.PayloadOneofCase.WriteFileOffset => new DataResponse() { RequestId = req.RequestId, WriteFileRes = await WriteFileOffset(req.WriteFileOffset, context) },
+                    DataRequest.PayloadOneofCase.WriteFileAppend => new DataResponse() { RequestId = req.RequestId, WriteFileRes = await WriteFileAppend(req.WriteFileAppend, context) },
+                    _ => throw new Exception("unknown request type") // this should never happen
+                };
+                await responseStream.WriteAsync(resp);
+            }
+            catch (RpcException rpcex)
+            {
+                await responseStream.WriteAsync(new DataResponse()
+                {
+                    RequestId = req.RequestId,
+                    VsException = new StreamedVsException()
+                    {
+                        ErrorCode = rpcex.StatusCode.ToString(),
+                        ErrorMessage = rpcex.ToString()
+                    }
+                });
+            }
         }
     }
 

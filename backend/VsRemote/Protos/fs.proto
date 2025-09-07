@@ -54,7 +54,13 @@ message DataResponse {
         RenameFileResponse renameFileRes = 6;
         ReadFileResponse readFileRes = 7;
         WriteFileResponse writeFileRes = 8;
+        StreamedVsException vsException = 99;
     }
+}
+
+message StreamedVsException {
+    string errorCode = 1;
+    string errorMessage = 2;
 }
 
 enum FileType {
