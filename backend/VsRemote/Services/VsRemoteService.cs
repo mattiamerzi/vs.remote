@@ -18,6 +18,31 @@ internal sealed class VsRemoteService : VsRemote.VsRemoteBase
     public VsRemoteService(ILogger<VsRemoteService> logger, IVsRemoteFileSystemProvider remoteFsProvider, IVsRemoteAuthenticator remoteAuthenticator, IVsRemoteCommands remoteCommands)
         => (this.logger, this.remoteFsProvider, this.remoteAuthenticator, this.remoteCommands) = (logger, remoteFsProvider, remoteAuthenticator, remoteCommands);
 
+    public override async Task StreamFS(IAsyncStreamReader<DataRequest> requestStream, IServerStreamWriter<DataResponse> responseStream, ServerCallContext context)
+    {
+        await foreach (var req in requestStream.ReadAllAsync())
+        {
+            DataResponse resp = req.PayloadCase switch
+            {
+                DataRequest.PayloadOneofCase.Stat => new DataResponse() { RequestId = req.RequestId, StatRes = await Stat(req.Stat, context) },
+                DataRequest.PayloadOneofCase.ListDirectory => new DataResponse() { RequestId = req.RequestId, ListDirectoryRes = await ListDirectory(req.ListDirectory, context) },
+                DataRequest.PayloadOneofCase.CreateDirectory => new DataResponse() { RequestId = req.RequestId, CreateDirectoryRes = await CreateDirectory(req.CreateDirectory, context) },
+                DataRequest.PayloadOneofCase.RemoveDirectory => new DataResponse() { RequestId = req.RequestId, RemoveDirectoryRes = await RemoveDirectory(req.RemoveDirectory, context) },
+                DataRequest.PayloadOneofCase.DeleteFile => new DataResponse() { RequestId = req.RequestId, DeleteFileRes = await DeleteFile(req.DeleteFile, context) },
+                DataRequest.PayloadOneofCase.RenameFile => new DataResponse() { RequestId = req.RequestId, RenameFileRes = await RenameFile(req.RenameFile, context) },
+                DataRequest.PayloadOneofCase.ReadFile => new DataResponse() { RequestId = req.RequestId, ReadFileRes = await ReadFile(req.ReadFile, context) },
+                DataRequest.PayloadOneofCase.ReadFileOffset => new DataResponse() { RequestId = req.RequestId, ReadFileRes = await ReadFileOffset(req.ReadFileOffset, context) },
+                DataRequest.PayloadOneofCase.CreateFile => new DataResponse() { RequestId = req.RequestId, WriteFileRes = await CreateFile(req.CreateFile, context) },
+                DataRequest.PayloadOneofCase.WriteFile => new DataResponse() { RequestId = req.RequestId, WriteFileRes = await WriteFile(req.WriteFile, context) },
+                DataRequest.PayloadOneofCase.WriteFileOffset => new DataResponse() { RequestId = req.RequestId, WriteFileRes = await WriteFileOffset(req.WriteFileOffset, context) },
+                DataRequest.PayloadOneofCase.WriteFileAppend => new DataResponse() { RequestId = req.RequestId, WriteFileRes = await WriteFileAppend(req.WriteFileAppend, context) },
+                _ => throw new Exception("unknown request type") // this should never happen
+            };
+
+            await responseStream.WriteAsync(resp);
+        }
+    }
+
     public override async Task<ListCommandsResponse> ListCommands(ListCommandsRequest request, ServerCallContext context)
     {
         logger.LogDebug("ListCommands()");

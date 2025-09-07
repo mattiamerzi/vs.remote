@@ -20,6 +20,41 @@ service VsRemote {
   rpc WriteFileAppend (WriteFileAppendRequest) returns (WriteFileResponse);
   rpc ListCommands (ListCommandsRequest) returns (ListCommandsResponse);
   rpc ExecuteCommand (ExecuteCommandRequest) returns (ExecuteCommandResponse);
+  rpc StreamFS(stream DataRequest) returns (stream DataResponse);
+}
+
+message DataRequest {
+    int32 requestId = 999;
+
+    oneof payload {
+        StatRequest stat = 1;
+        ListDirectoryRequest listDirectory = 2;
+        CreateDirectoryRequest createDirectory = 3;
+        RemoveDirectoryRequest removeDirectory = 4;
+        DeleteFileRequest deleteFile = 5;
+        RenameFileRequest renameFile = 6;
+        ReadFileRequest readFile = 7;
+        ReadFileOffsetRequest readFileOffset = 8;
+        CreateFileRequest createFile = 9;
+        WriteFileRequest writeFile = 10;
+        WriteFileOffsetRequest writeFileOffset = 11;
+        WriteFileAppendRequest writeFileAppend = 12;
+    }
+}
+
+message DataResponse {
+    int32 requestId = 999;
+
+    oneof payload {
+        StatResponse statRes = 1;
+        ListDirectoryResponse listDirectoryRes = 2;
+        CreateDirectoryResponse createDirectoryRes = 3;
+        RemoveDirectoryResponse removeDirectoryRes = 4;
+        DeleteFileResponse deleteFileRes = 5;
+        RenameFileResponse renameFileRes = 6;
+        ReadFileResponse readFileRes = 7;
+        WriteFileResponse writeFileRes = 8;
+    }
 }
 
 enum FileType {
