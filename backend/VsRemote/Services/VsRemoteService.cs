@@ -50,7 +50,7 @@ internal sealed class VsRemoteService : VsRemote.VsRemoteBase
                     RequestId = req.RequestId,
                     VsException = new StreamedVsException()
                     {
-                        ErrorCode = rpcex.StatusCode.ToString(),
+                        ErrorCode = rpcex.VsErrorCode(),
                         ErrorMessage = rpcex.ToString()
                     }
                 });

@@ -56,6 +56,6 @@ public abstract class VsException: Exception
 public static class RpcExceptionExt
 {
     public static string VsErrorCode(this RpcException ex)
-        => ex.Trailers?.Get("error_code")?.Value ?? ServerError.ERROR_CODE;
+        => ex.Status.Detail; // ?? ex.Trailers?.Get("error_code")?.Value ?? ServerError.ERROR_CODE;
 
 }
